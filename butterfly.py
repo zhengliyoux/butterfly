@@ -1,1652 +1,1652 @@
-vzcbeg bf
-vzcbeg gvzr
-vzcbeg enaqbz
-vzcbeg fbpxrg
-vzcbeg cyngsbez
-vzcbeg guernqvat
-vzcbeg fhocebprff
-vzcbeg wfba
-vzcbeg ffy
-vzcbeg er
-vzcbeg vcnqqerff
-sebz qngrgvzr vzcbeg qngrgvzr
+import os
+import time
+import random
+import socket
+import platform
+import threading
+import subprocess
+import json
+import ssl
+import re
+import ipaddress
+from datetime import datetime
 
-# ================= FGLYR =================
-ERFRG   = "\366[3z"
-TERRA   = "\366[4;65z"
-PLNA    = "\366[4;69z"
-ERQ     = "\366[4;64z"
-LRYYBJ  = "\366[4;66z"
-OBYQ    = "\366[4z"
-ZNTRAGN = "\366[4;68z"
-JUVGR   = "\366[4;60z"
-OYHR    = "\366[4;67z"
-QVZ     = "\366[5z"
-OT_QNEX = "\366[71;8;567z"
+# ================= STYLE =================
+RESET   = "\033[0m"
+GREEN   = "\033[1;32m"
+CYAN    = "\033[1;36m"
+RED     = "\033[1;31m"
+YELLOW  = "\033[1;33m"
+BOLD    = "\033[1m"
+MAGENTA = "\033[1;35m"
+WHITE   = "\033[1;37m"
+BLUE    = "\033[1;34m"
+DIM     = "\033[2m"
+BG_DARK = "\033[48;5;234m"
 
-YBT_SVYR = "fxljvatf_bhgchg.ybt"
+LOG_FILE = "skywings_output.log"
 
-# ================= FNSR EHA =================
-qrs eha(pzq, gvzrbhg=48):
-    gel:
-        erghea fhocebprff.eha(pzq, furyy=Gehr, pncgher_bhgchg=Gehr, grkg=Gehr, gvzrbhg=gvzrbhg)
-    rkprcg fhocebprff.GvzrbhgRkcverq:
-        cevag(ERQ + s"[GVZRBHG] Pbzznaq unovf jnxgh: {pzq[:73]}" + ERFRG)
-        erghea Abar
-    rkprcg Rkprcgvba nf r:
-        cevag(ERQ + s"[REEBE] {r}" + ERFRG)
-        erghea Abar
+# ================= SAFE RUN =================
+def run(cmd, timeout=15):
+    try:
+        return subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(RED + f"[TIMEOUT] Command habis waktu: {cmd[:40]}" + RESET)
+        return None
+    except Exception as e:
+        print(RED + f"[ERROR] {e}" + RESET)
+        return None
 
-# ================= URYCRE =================
-qrs abeznyvmr_hey(hey):
-    hey = hey.fgevc()
-    vs abg hey.fgnegfjvgu("uggc://") naq abg hey.fgnegfjvgu("uggcf://"):
-        erghea "uggcf://" + hey
-    erghea hey
+# ================= HELPER =================
+def normalize_url(url):
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        return "https://" + url
+    return url
 
-qrs gbby_purpx(gbby):
-    e = eha(s"juvpu {gbby}")
-    vs abg e be abg e.fgqbhg.fgevc():
-        cevag(ERQ + s"[!] '{gbby}' oryhz grevafgnyy." + ERFRG)
-        vafgnyy_znc = {
-            "aznc":       "cxt vafgnyy aznc",
-            "jubvf":      "cxt vafgnyy jubvf",
-            "genprebhgr": "cxt vafgnyy genprebhgr",
-            "phey":       "cxt vafgnyy phey",
-            "bcraffy":    "cxt vafgnyy bcraffy",
-            "qvt":        "cxt vafgnyy qafhgvyf",
+def tool_check(tool):
+    r = run(f"which {tool}")
+    if not r or not r.stdout.strip():
+        print(RED + f"[!] '{tool}' belum terinstall." + RESET)
+        install_map = {
+            "nmap":       "pkg install nmap",
+            "whois":      "pkg install whois",
+            "traceroute": "pkg install traceroute",
+            "curl":       "pkg install curl",
+            "openssl":    "pkg install openssl",
+            "dig":        "pkg install dnsutils",
         }
-        uvag = vafgnyy_znc.trg(gbby)
-        vs uvag:
-            cevag(LRYYBJ + s"    Vafgnyy: {uvag}" + ERFRG)
-        erghea Snyfr
-    erghea Gehr
+        hint = install_map.get(tool)
+        if hint:
+            print(YELLOW + f"    Install: {hint}" + RESET)
+        return False
+    return True
 
-qrs vf_inyvq_gnetrg(gnetrg):
-    erghea obby(gnetrg naq gnetrg.fgevc())
+def is_valid_target(target):
+    return bool(target and target.strip())
 
-qrs vf_vc(gnetrg):
-    gel:
-        vcnqqerff.vc_nqqerff(gnetrg.fgevc())
-        erghea Gehr
-    rkprcg InyhrReebe:
-        erghea Snyfr
+def is_ip(target):
+    try:
+        ipaddress.ip_address(target.strip())
+        return True
+    except ValueError:
+        return False
 
-qrs trg_vc(gnetrg):
-    gel:
-        erghea fbpxrg.trgubfgolanzr(gnetrg.fgevc())
-    rkprcg fbpxrg.tnvreebe:
-        erghea Abar
+def get_ip(target):
+    try:
+        return socket.gethostbyname(target.strip())
+    except socket.gaierror:
+        return None
 
-qrs trg_nyy_vcf(gnetrg):
-    gel:
-        vasbf = fbpxrg.trgnqqevasb(gnetrg.fgevc(), Abar)
-        vcf = yvfg(qvpg.sebzxrlf([v[7][3] sbe v va vasbf]))
-        erghea vcf
-    rkprcg:
-        erghea []
+def get_all_ips(target):
+    try:
+        infos = socket.getaddrinfo(target.strip(), None)
+        ips = list(dict.fromkeys([i[4][0] for i in infos]))
+        return ips
+    except:
+        return []
 
-qrs fgevc_fpurzr(hey):
-    erghea hey.fgevc().ercynpr("uggcf://","").ercynpr("uggc://","").fcyvg("/")[3]
+def strip_scheme(url):
+    return url.strip().replace("https://","").replace("http://","").split("/")[0]
 
-qrs cevag_frc(pune="─", pbybe=PLNA, jvqgu=83):
-    cevag(pbybe + "  " + pune * jvqgu + ERFRG)
+def print_sep(char="─", color=CYAN, width=50):
+    print(color + "  " + char * width + RESET)
 
-qrs fnir_ybt(qngn):
-    gel:
-        jvgu bcra(YBT_SVYR, "n") nf s:
-            s.jevgr(s"[{qngrgvzr.abj().fgesgvzr('%L-%z-%q %U:%Z:%F')}] {qngn}\a")
-    rkprcg Rkprcgvba nf r:
-        cevag(ERQ + s"[YBT REEBE] {r}" + ERFRG)
+def save_log(data):
+    try:
+        with open(LOG_FILE, "a") as f:
+            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {data}\n")
+    except Exception as e:
+        print(RED + f"[LOG ERROR] {e}" + RESET)
 
-qrs sbezng_olgrf(fvmr):
-    gel:
-        fvmr = vag(fvmr)
-        sbe havg va ['O','XO','ZO','TO']:
-            vs fvmr < 4357:
-                erghea s"{fvmr:.4s}{havg}"
-            fvmr /= 4357
-        erghea s"{fvmr:.4s}GO"
-    rkprcg:
-        erghea s"{fvmr}O"
+def format_bytes(size):
+    try:
+        size = int(size)
+        for unit in ['B','KB','MB','GB']:
+            if size < 1024:
+                return f"{size:.1f}{unit}"
+            size /= 1024
+        return f"{size:.1f}TB"
+    except:
+        return f"{size}B"
 
-qrs pnyp_yngrapl(ubfg, pbhag=6):
-    e = eha(s"cvat -p {pbhag} -J 5 {ubfg}", gvzrbhg=pbhag*6+8)
-    vs abg e be e.ergheapbqr != 3:
-        erghea Abar
-    sbe yvar va e.fgqbhg.fcyvg("\a"):
-        vs "egg" va yvar be "ebhaq-gevc" va yvar:
-            gel:
-                nit = yvar.fcyvg("/")[7]
-                erghea sybng(nit)
-            rkprcg:
-                cnff
-    erghea Abar
+def calc_latency(host, count=3):
+    r = run(f"ping -c {count} -W 2 {host}", timeout=count*3+5)
+    if not r or r.returncode != 0:
+        return None
+    for line in r.stdout.split("\n"):
+        if "rtt" in line or "round-trip" in line:
+            try:
+                avg = line.split("/")[4]
+                return float(avg)
+            except:
+                pass
+    return None
 
-# ================= NV PBYBE =================
-PBYBEF = [
-    "\366[4;64z","\366[4;65z","\366[4;66z","\366[4;67z",
-    "\366[4;68z","\366[4;69z","\366[61;8;531z",
-    "\366[61;8;534z","\366[61;8;84z","\366[61;8;79z",
+# ================= AI COLOR =================
+COLORS = [
+    "\033[1;31m","\033[1;32m","\033[1;33m","\033[1;34m",
+    "\033[1;35m","\033[1;36m","\033[38;5;208m",
+    "\033[38;5;201m","\033[38;5;51m","\033[38;5;46m",
 ]
 
-qrs nv_pbybe():
-    erghea enaqbz.pubvpr(PBYBEF)
+def ai_color():
+    return random.choice(COLORS)
 
-qrs pyrne():
-    bf.flfgrz("pyrne")
+def clear():
+    os.system("clear")
 
-# ================= YBNQVAT =================
-qrs ybnqvat(grxf):
-    one_jvqgu = 63
-    sbe v va enatr(3, 434, 5):
-        svyyrq = vag(one_jvqgu * v / 433)
-        one = "█" * svyyrq + "░" * (one_jvqgu - svyyrq)
-        cevag(s"\e  {PLNA}[{one}]{ERFRG} {nv_pbybe()}{v:6q}%{ERFRG}  {QVZ}{grxf}...{ERFRG}", raq="")
-        gvzr.fyrrc(3.35)
-    cevag(s"\e  {TERRA}[{'█'*one_jvqgu}]{ERFRG} {TERRA}433%{ERFRG}  {grxf}... {TERRA}QBAR{ERFRG}     ")
+# ================= LOADING =================
+def loading(teks):
+    bar_width = 30
+    for i in range(0, 101, 2):
+        filled = int(bar_width * i / 100)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        print(f"\r  {CYAN}[{bar}]{RESET} {ai_color()}{i:3d}%{RESET}  {DIM}{teks}...{RESET}", end="")
+        time.sleep(0.02)
+    print(f"\r  {GREEN}[{'█'*bar_width}]{RESET} {GREEN}100%{RESET}  {teks}... {GREEN}DONE{RESET}     ")
 
-qrs snapl_ybnqvat(grkg):
-    one_jvqgu = 63
-    sbe v va enatr(4, 434):
-        svyyrq = vag(one_jvqgu * v / 433)
-        one = "█" * svyyrq + "░" * (one_jvqgu - svyyrq)
-        cevag(s"\e  {PLNA}[{one}]{ERFRG} {nv_pbybe()}{v:6q}%{ERFRG}  {grkg}", raq="")
-        gvzr.fyrrc(3.345)
-    cevag()
+def fancy_loading(text):
+    bar_width = 30
+    for i in range(1, 101):
+        filled = int(bar_width * i / 100)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        print(f"\r  {CYAN}[{bar}]{RESET} {ai_color()}{i:3d}%{RESET}  {text}", end="")
+        time.sleep(0.012)
+    print()
 
-# ================= CEBZCG =================
-qrs fxljvatf_pbqrk():
-    erghea (
-        "\a  " +
-        OBYQ + "\366[61;8;84z" + "╔══" + ERFRG +
-        OBYQ + "\366[61;8;534z" + "FxlJvatf" + ERFRG +
-        PLNA + "@" + ERFRG +
-        TERRA + "ebbg" + ERFRG +
-        ERQ + " ➤ " + ERFRG
+# ================= PROMPT =================
+def skywings_codex():
+    return (
+        "\n  " +
+        BOLD + "\033[38;5;51m" + "╔══" + RESET +
+        BOLD + "\033[38;5;201m" + "SkyWings" + RESET +
+        CYAN + "@" + RESET +
+        GREEN + "root" + RESET +
+        RED + " ➤ " + RESET
     )
 
-# ================= HV =================
-J = 85
+# ================= UI =================
+W = 52
 
-qrs xnyv_urnqre(gvgyr):
-    pbybe = PLNA
-    abj = qngrgvzr.abj().fgesgvzr("%U:%Z:%F")
-    gbc    = "╔" + "═" * J + "╗"
-    zvq    = s"║  {'🔐 FxlJvatf':^8}  ::  {gvgyr:<63}  ║"
-    obg    = "╚" + "═" * J + "╝"
-    cevag()
-    cevag(pbybe + OBYQ + s"  {gbc}")
-    cevag(s"  {zvq}")
-    cevag(s"  {obg}" + ERFRG)
-    cevag()
+def kali_header(title):
+    color = CYAN
+    now = datetime.now().strftime("%H:%M:%S")
+    top    = "╔" + "═" * W + "╗"
+    mid    = f"║  {'🔐 SkyWings':^5}  ::  {title:<30}  ║"
+    bot    = "╚" + "═" * W + "╝"
+    print()
+    print(color + BOLD + f"  {top}")
+    print(f"  {mid}")
+    print(f"  {bot}" + RESET)
+    print()
 
-qrs yvar_sk():
-    cevag(nv_pbybe() + "  " + "═"*J + ERFRG)
+def line_fx():
+    print(ai_color() + "  " + "═"*W + RESET)
 
-qrs frpgvba_gvgyr(grkg, vpba="◈"):
-    cevag()
-    cevag(s"  {OBYQ}{PLNA}{vpba} {grkg}{ERFRG}")
-    cevag(s"  {QVZ}{'─'*J}{ERFRG}")
+def section_title(text, icon="◈"):
+    print()
+    print(f"  {BOLD}{CYAN}{icon} {text}{RESET}")
+    print(f"  {DIM}{'─'*W}{RESET}")
 
-# ================= FPERRA ZBQR =================
-qrs ragre_onpx():
-    cevag()
-    cevag_frc("─", QVZ, J)
-    vachg(s"  {LRYYBJ}[ ↵  Grxna RAGRE haghx xrzonyv ]{ERFRG} ")
+# ================= SCREEN MODE =================
+def enter_back():
+    print()
+    print_sep("─", DIM, W)
+    input(f"  {YELLOW}[ ↵  Tekan ENTER untuk kembali ]{RESET} ")
 
-qrs fperra_zbqr(gvgyr):
-    qrs qrpbengbe(shap):
-        qrs jenccre(*netf, **xjnetf):
-            pyrne()
-            xnyv_urnqre(gvgyr)
-            erfhyg = shap(*netf, **xjnetf)
-            ragre_onpx()
-            erghea erfhyg
-        erghea jenccre
-    erghea qrpbengbe
+def screen_mode(title):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            clear()
+            kali_header(title)
+            result = func(*args, **kwargs)
+            enter_back()
+            return result
+        return wrapper
+    return decorator
 
-# ================= YBTB =================
-qrs ybtb():
-    pyrne()
+# ================= LOGO =================
+def logo():
+    clear()
 
-    senzrf = [
-        "\366[61;8;84z",
-        "\366[61;8;78z",
-        "\366[61;8;62z",
-        "\366[61;8;66z",
-        "\366[61;8;534z",
-        "\366[61;8;530z",
+    frames = [
+        "\033[38;5;51m",
+        "\033[38;5;45m",
+        "\033[38;5;39m",
+        "\033[38;5;33m",
+        "\033[38;5;201m",
+        "\033[38;5;207m",
     ]
-    p = enaqbz.pubvpr(senzrf)
-    p5 = enaqbz.pubvpr(senzrf)
+    c = random.choice(frames)
+    c2 = random.choice(frames)
 
-    cevag()
-    cevag(p + OBYQ + e"""
+    print()
+    print(c + BOLD + r"""
    ███████╗██╗  ██╗██╗   ██╗
    ██╔════╝██║ ██╔╝╚██╗ ██╔╝
    ███████╗█████╔╝  ╚████╔╝
    ╚════██║██╔═██╗   ╚██╔╝
    ███████║██║  ██╗   ██║
    ╚══════╝╚═╝  ╚═╝   ╚═╝
-""" + ERFRG)
+""" + RESET)
 
-    cevag(p5 + OBYQ + e"""
+    print(c2 + BOLD + r"""
   ██╗    ██╗██╗███╗   ██╗ ██████╗ ███████╗
   ██║    ██║██║████╗  ██║██╔════╝ ██╔════╝
   ██║ █╗ ██║██║██╔██╗ ██║██║  ███╗███████╗
   ██║███╗██║██║██║╚██╗██║██║   ██║╚════██║
   ╚███╔███╔╝██║██║ ╚████║╚██████╔╝███████║
    ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
-""" + ERFRG)
+""" + RESET)
 
-    cevag(s"  {PLNA}{'═'*85}{ERFRG}")
-    cevag(s"  {OBYQ}{PLNA}  🔐  FLFGRZ VAVGVNYVMRQ  ::  FXLJVATF NPGVIR{ERFRG}")
-    cevag(s"  {PLNA}{'═'*85}{ERFRG}")
-    cevag()
+    print(f"  {CYAN}{'═'*52}{RESET}")
+    print(f"  {BOLD}{CYAN}  🔐  SYSTEM INITIALIZED  ::  SKYWINGS ACTIVE{RESET}")
+    print(f"  {CYAN}{'═'*52}{RESET}")
+    print()
 
-    vasb_yvarf = [
-        ("Fpevcg ol",  "FxlJvatf"),
-        ("Irefvba",    "i4.4  ·  Jvatf Cbvag B"),
-        ("Flfgrz",     "Grezhk PYV"),
-        ("Fgnghf",     "🟢 BAYVAR"),
+    info_lines = [
+        ("Script by",  "SkyWings"),
+        ("Version",    "v1.1  ·  Wings Point O"),
+        ("System",     "Termux CLI"),
+        ("Status",     "🟢 ONLINE"),
     ]
-    sbe x, i va vasb_yvarf:
-        cevag(s"  {QVZ}{x:<45}{ERFRG}{LRYYBJ}{i}{ERFRG}")
+    for k, v in info_lines:
+        print(f"  {DIM}{k:<12}{RESET}{YELLOW}{v}{RESET}")
 
-    cevag()
+    print()
 
 # ============================================================
-#  SRNGHERF
+#  FEATURES
 # ============================================================
 
-PBZZBA_CBEGF = {
-    54:"SGC",      55:"FFU",       56:"GRYARG",
-    58:"FZGC",     86:"QAF",       13:"UGGC",
-    443:"CBC6",   476:"VZNC",    776:"UGGCF",
-    778:"FZO",    810:"FZGC-GYF",226:"VZNCF",
-    228:"CBC6F", 4766:"ZFFDY",  6639:"ZLFDY",
-    6612:"EQC",  8765:"CTFDY",  8233:"IAP",
-    9602:"ERQVF",1313:"UGGC-NYG",1776:"UGGCF-NYG",
-    1111:"WHCLGRE",50340:"ZBATBQO",
+COMMON_PORTS = {
+    21:"FTP",      22:"SSH",       23:"TELNET",
+    25:"SMTP",     53:"DNS",       80:"HTTP",
+    110:"POP3",   143:"IMAP",    443:"HTTPS",
+    445:"SMB",    587:"SMTP-TLS",993:"IMAPS",
+    995:"POP3S", 1433:"MSSQL",  3306:"MYSQL",
+    3389:"RDP",  5432:"PGSQL",  5900:"VNC",
+    6379:"REDIS",8080:"HTTP-ALT",8443:"HTTPS-ALT",
+    8888:"JUPYTER",27017:"MONGODB",
 }
 
-qrs teno_onaare(vc, cbeg, gvzrbhg=5.3):
-    gel:
-        f = fbpxrg.fbpxrg()
-        f.frggvzrbhg(gvzrbhg)
-        f.pbaarpg((vc, cbeg))
-        ceborf = {
-            13:  o"URNQ / UGGC/4.3\e\aUbfg: gnetrg\e\a\e\a",
-            1313:o"URNQ / UGGC/4.3\e\aUbfg: gnetrg\e\a\e\a",
-            1776:o"URNQ / UGGC/4.3\e\aUbfg: gnetrg\e\a\e\a",
-            54:  Abar,
-            55:  Abar,
-            58:  Abar,
-            443: Abar,
-            476: Abar,
-            6639:Abar,
+def grab_banner(ip, port, timeout=2.0):
+    try:
+        s = socket.socket()
+        s.settimeout(timeout)
+        s.connect((ip, port))
+        probes = {
+            80:  b"HEAD / HTTP/1.0\r\nHost: target\r\n\r\n",
+            8080:b"HEAD / HTTP/1.0\r\nHost: target\r\n\r\n",
+            8443:b"HEAD / HTTP/1.0\r\nHost: target\r\n\r\n",
+            21:  None,
+            22:  None,
+            25:  None,
+            110: None,
+            143: None,
+            3306:None,
         }
-        cebor = ceborf.trg(cbeg, o"\e\a")
-        vs cebor:
-            f.fraq(cebor)
-        onaare = f.erpi(845).qrpbqr(reebef="vtaber").fgevc()
-        f.pybfr()
-        yvarf = [y.fgevc() sbe y va onaare.fcyvg("\a") vs y.fgevc()]
-        erfhyg = yvarf[3] vs yvarf ryfr ""
-        erghea erfhyg[:433] vs erfhyg ryfr Abar
-    rkprcg:
-        erghea Abar
+        probe = probes.get(port, b"\r\n")
+        if probe:
+            s.send(probe)
+        banner = s.recv(512).decode(errors="ignore").strip()
+        s.close()
+        lines = [l.strip() for l in banner.split("\n") if l.strip()]
+        result = lines[0] if lines else ""
+        return result[:100] if result else None
+    except:
+        return None
 
-qrs qaf_ybbxhc_enj(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vc = trg_vc(gnetrg)
-    vs vc:
-        cevag(s"  {TERRA}◉ QAF-N   {ERFRG}{PLNA}{gnetrg}{ERFRG}  →  {JUVGR}{vc}{ERFRG}")
-        gel:
-            eri = fbpxrg.trgubfgolnqqe(vc)
-            vs eri naq eri[3] naq eri[3] != gnetrg:
-                cevag(s"  {PLNA}◉ eQAF    {ERFRG}{vc}  →  {JUVGR}{eri[3]}{ERFRG}")
-        rkprcg:
-            cnff
-        fnir_ybt(s"QAF {gnetrg}->{vc}")
-        erghea vc
-    ryfr:
-        cevag(s"  {ERQ}✗ QAF     Tntny erfbyir: {gnetrg}{ERFRG}")
-        erghea Abar
+def dns_lookup_raw(target):
+    target = target.strip()
+    ip = get_ip(target)
+    if ip:
+        print(f"  {GREEN}◉ DNS-A   {RESET}{CYAN}{target}{RESET}  →  {WHITE}{ip}{RESET}")
+        try:
+            rev = socket.gethostbyaddr(ip)
+            if rev and rev[0] and rev[0] != target:
+                print(f"  {CYAN}◉ rDNS    {RESET}{ip}  →  {WHITE}{rev[0]}{RESET}")
+        except:
+            pass
+        save_log(f"DNS {target}->{ip}")
+        return ip
+    else:
+        print(f"  {RED}✗ DNS     Gagal resolve: {target}{RESET}")
+        return None
 
-@fperra_zbqr("QAF YBBXHC")
-qrs qaf_ybbxhc_zrah(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
+@screen_mode("DNS LOOKUP")
+def dns_lookup_menu(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
 
-    frpgvba_gvgyr("Erfbyivat Gnetrg")
-    vc = qaf_ybbxhc_enj(gnetrg)
+    section_title("Resolving Target")
+    ip = dns_lookup_raw(target)
 
-    nyy_vcf = trg_nyy_vcf(gnetrg)
-    vs yra(nyy_vcf) > 4:
-        cevag(s"  {PLNA}◉ Nyy VCf {ERFRG}{', '.wbva(nyy_vcf)}")
+    all_ips = get_all_ips(target)
+    if len(all_ips) > 1:
+        print(f"  {CYAN}◉ All IPs {RESET}{', '.join(all_ips)}")
 
-    gel:
-        vasb = fbpxrg.trgnqqevasb(gnetrg, Abar, fbpxrg.NS_VARG9)
-        vs vasb:
-            vci9 = vasb[3][7][3]
-            cevag(s"  {PLNA}◉ VCi9    {ERFRG}{vci9}")
-    rkprcg:
-        cnff
+    try:
+        info = socket.getaddrinfo(target, None, socket.AF_INET6)
+        if info:
+            ipv6 = info[0][4][0]
+            print(f"  {CYAN}◉ IPv6    {RESET}{ipv6}")
+    except:
+        pass
 
-    vs abg vc:
-        erghea
+    if not ip:
+        return
 
-    vs gbby_purpx("jubvf"):
-        e_nfa = eha(s"jubvf -u jubvf.plzeh.pbz ' -i {vc}' 5>/qri/ahyy", gvzrbhg=1)
-        vs e_nfa naq e_nfa.fgqbhg.fgevc():
-            yvarf = [y sbe y va e_nfa.fgqbhg.fgevc().fcyvg("\a") vs y.fgevc() naq abg y.fgnegfjvgu("NF")]
-            vs yvarf:
-                cevag(s"  {LRYYBJ}◉ NFA     {ERFRG}{yvarf[3].fgevc()}")
+    if tool_check("whois"):
+        r_asn = run(f"whois -h whois.cymru.com ' -v {ip}' 2>/dev/null", timeout=8)
+        if r_asn and r_asn.stdout.strip():
+            lines = [l for l in r_asn.stdout.strip().split("\n") if l.strip() and not l.startswith("AS")]
+            if lines:
+                print(f"  {YELLOW}◉ ASN     {RESET}{lines[0].strip()}")
 
-    cevag_frc()
+    print_sep()
 
-    vs gbby_purpx("qvt"):
-        erpbeq_glcrf = ["N","NNNN","ZK","AF","GKG","PANZR","FBN"]
-        sbe eglcr va erpbeq_glcrf:
-            e = eha(s"qvt {gnetrg} {eglcr} +abnyy +nafjre +gvzr=6 5>/qri/ahyy", gvzrbhg=1)
-            vs e naq e.fgqbhg.fgevc():
-                frpgvba_gvgyr(s"{eglcr} Erpbeqf", "◈")
-                sbe yvar va e.fgqbhg.fgevc().fcyvg("\a")[:43]:
-                    cevag(s"    {QVZ}{yvar}{ERFRG}")
-    ryfr:
-        e = eha(s"afybbxhc {gnetrg} 5>/qri/ahyy")
-        vs e naq e.fgqbhg.fgevc():
-            frpgvba_gvgyr("AFYbbxhc")
-            cevag(e.fgqbhg[:133])
+    if tool_check("dig"):
+        record_types = ["A","AAAA","MX","NS","TXT","CNAME","SOA"]
+        for rtype in record_types:
+            r = run(f"dig {target} {rtype} +noall +answer +time=3 2>/dev/null", timeout=8)
+            if r and r.stdout.strip():
+                section_title(f"{rtype} Records", "◈")
+                for line in r.stdout.strip().split("\n")[:10]:
+                    print(f"    {DIM}{line}{RESET}")
+    else:
+        r = run(f"nslookup {target} 2>/dev/null")
+        if r and r.stdout.strip():
+            section_title("NSLookup")
+            print(r.stdout[:800])
 
-@fperra_zbqr("DHVPX ARGJBEX VASB")
-qrs dhvpx_vasb(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
+@screen_mode("QUICK NETWORK INFO")
+def quick_info(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
 
-    vc = trg_vc(gnetrg)
-    vf_cevingr = Snyfr
-    vs vc:
-        gel:
-            vf_cevingr = vcnqqerff.vc_nqqerff(vc).vf_cevingr
-        rkprcg:
-            cnff
+    ip = get_ip(target)
+    is_private = False
+    if ip:
+        try:
+            is_private = ipaddress.ip_address(ip).is_private
+        except:
+            pass
 
-    frpgvba_gvgyr("Gnetrg Vasbezngvba")
-    cevag(s"  {QVZ}{'Gnetrg':<45}{ERFRG}{JUVGR}{gnetrg}{ERFRG}")
-    cevag(s"  {QVZ}{'VC':<45}{ERFRG}{JUVGR}{vc be 'Tntny erfbyir'}{ERFRG}")
-    vs vc:
-        glcr_ynory = "Cevingr / YNA" vs vf_cevingr ryfr "Choyvp"
-        glcr_pbybe = LRYYBJ vs vf_cevingr ryfr TERRA
-        cevag(s"  {QVZ}{'Glcr':<45}{ERFRG}{glcr_pbybe}{glcr_ynory}{ERFRG}")
+    section_title("Target Information")
+    print(f"  {DIM}{'Target':<12}{RESET}{WHITE}{target}{RESET}")
+    print(f"  {DIM}{'IP':<12}{RESET}{WHITE}{ip or 'Gagal resolve'}{RESET}")
+    if ip:
+        type_label = "Private / LAN" if is_private else "Public"
+        type_color = YELLOW if is_private else GREEN
+        print(f"  {DIM}{'Type':<12}{RESET}{type_color}{type_label}{RESET}")
 
-    cevag_frc()
+    print_sep()
 
-    frpgvba_gvgyr("Cvat Grfg  (7 cnpxrgf)")
-    e = eha(s"cvat -p 7 -J 5 {gnetrg}", gvzrbhg=53)
-    vs e naq e.ergheapbqr == 3 naq e.fgqbhg:
-        sbe yvar va e.fgqbhg.fgevc().fcyvg("\a"):
-            vs "gvzr=" va yvar:
-                gel:
-                    zf_iny = sybng(er.frnepu(e"gvzr=([\q.]+)", yvar).tebhc(4))
-                    pbybe = TERRA vs zf_iny < 83 ryfr (LRYYBJ vs zf_iny < 483 ryfr ERQ)
-                    cevag(s"  {pbybe}{yvar.fgevc()}{ERFRG}")
-                rkprcg:
-                    cevag(s"  {TERRA}{yvar.fgevc()}{ERFRG}")
-            ryvs "egg" va yvar be "cnpxrg" va yvar:
-                cevag(s"  {TERRA}{yvar.fgevc()}{ERFRG}")
-    ryfr:
-        cevag(s"  {ERQ}✗ Ubfg gvqnx ernpunoyr  (VPZC zhatxva qvoybxve){ERFRG}")
+    section_title("Ping Test  (4 packets)")
+    r = run(f"ping -c 4 -W 2 {target}", timeout=20)
+    if r and r.returncode == 0 and r.stdout:
+        for line in r.stdout.strip().split("\n"):
+            if "time=" in line:
+                try:
+                    ms_val = float(re.search(r"time=([\d.]+)", line).group(1))
+                    color = GREEN if ms_val < 50 else (YELLOW if ms_val < 150 else RED)
+                    print(f"  {color}{line.strip()}{RESET}")
+                except:
+                    print(f"  {GREEN}{line.strip()}{RESET}")
+            elif "rtt" in line or "packet" in line:
+                print(f"  {GREEN}{line.strip()}{RESET}")
+    else:
+        print(f"  {RED}✗ Host tidak reachable  (ICMP mungkin diblokir){RESET}")
 
-    yng = pnyp_yngrapl(gnetrg)
-    vs yng vf abg Abar:
-        d = "Rkpryyrag" vs yng < 53 ryfr ("Tbbq" vs yng < 13 ryfr ("Snve" vs yng < 483 ryfr "Cbbe"))
-        pbybe = TERRA vs yng < 13 ryfr (LRYYBJ vs yng < 483 ryfr ERQ)
-        cevag(s"\a  {pbybe}◉ Nit Yngrapl : {yng:.4s} zf  [{d}]{ERFRG}")
+    lat = calc_latency(target)
+    if lat is not None:
+        q = "Excellent" if lat < 20 else ("Good" if lat < 80 else ("Fair" if lat < 150 else "Poor"))
+        color = GREEN if lat < 80 else (YELLOW if lat < 150 else RED)
+        print(f"\n  {color}◉ Avg Latency : {lat:.1f} ms  [{q}]{RESET}")
 
-    cevag_frc()
-    frpgvba_gvgyr("QAF")
-    qaf_ybbxhc_enj(gnetrg)
-    nyy_vcf = trg_nyy_vcf(gnetrg)
-    vs yra(nyy_vcf) > 4:
-        cevag(s"  {PLNA}◉ Zhygv-VC  {ERFRG}{', '.wbva(nyy_vcf[:8])}")
+    print_sep()
+    section_title("DNS")
+    dns_lookup_raw(target)
+    all_ips = get_all_ips(target)
+    if len(all_ips) > 1:
+        print(f"  {CYAN}◉ Multi-IP  {RESET}{', '.join(all_ips[:5])}")
 
-    cevag_frc()
-    frpgvba_gvgyr("Dhvpx Cbeg Purpx")
-    vs vc:
-        pevgvpny_cbegf = [(13,"UGGC"),(776,"UGGCF"),(55,"FFU"),(54,"SGC"),(6639,"ZLFDY"),(6612,"EQC")]
-        sbe c, fip va pevgvpny_cbegf:
-            f = fbpxrg.fbpxrg()
-            f.frggvzrbhg(4)
-            g_fgneg = gvzr.gvzr()
-            fgnghf = "BCRA" vs f.pbaarpg_rk((vc, c)) == 3 ryfr "PYBFRQ"
-            g_zf = ebhaq((gvzr.gvzr()-g_fgneg)*4333,4)
-            f.pybfr()
-            vs fgnghf == "BCRA":
-                cevag(s"  {TERRA}● BCRA   {c:8}  {fip:<45}  {g_zf}zf{ERFRG}")
-            ryfr:
-                cevag(s"  {ERQ}○ PYBFRQ {c:8}  {fip}{ERFRG}")
+    print_sep()
+    section_title("Quick Port Check")
+    if ip:
+        critical_ports = [(80,"HTTP"),(443,"HTTPS"),(22,"SSH"),(21,"FTP"),(3306,"MYSQL"),(3389,"RDP")]
+        for p, svc in critical_ports:
+            s = socket.socket()
+            s.settimeout(1)
+            t_start = time.time()
+            status = "OPEN" if s.connect_ex((ip, p)) == 0 else "CLOSED"
+            t_ms = round((time.time()-t_start)*1000,1)
+            s.close()
+            if status == "OPEN":
+                print(f"  {GREEN}● OPEN   {p:5}  {svc:<12}  {t_ms}ms{RESET}")
+            else:
+                print(f"  {RED}○ CLOSED {p:5}  {svc}{RESET}")
 
-    cevag_frc()
-    frpgvba_gvgyr("GGY / BF Svatrecevag")
-    e5 = eha(s"cvat -p 4 -J 5 {gnetrg}", gvzrbhg=8)
-    vs e5 naq e5.fgqbhg:
-        sbe yvar va e5.fgqbhg.fcyvg("\a"):
-            vs "ggy=" va yvar.ybjre():
-                gel:
-                    ggy = vag(er.frnepu(e"ggy=(\q+)", yvar, er.V).tebhc(4))
-                    vs ggy <= 97:
-                        bf_thrff = "Yvahk / Havk / Naqebvq"
-                    ryvs ggy <= 451:
-                        bf_thrff = "Jvaqbjf"
-                    ryfr:
-                        bf_thrff = "Pvfpb / Argjbex Qrivpr"
-                    cevag(s"  {LRYYBJ}◉ GGY : {ggy}  →  {bf_thrff}{ERFRG}")
-                rkprcg:
-                    cnff
+    print_sep()
+    section_title("TTL / OS Fingerprint")
+    r2 = run(f"ping -c 1 -W 2 {target}", timeout=5)
+    if r2 and r2.stdout:
+        for line in r2.stdout.split("\n"):
+            if "ttl=" in line.lower():
+                try:
+                    ttl = int(re.search(r"ttl=(\d+)", line, re.I).group(1))
+                    if ttl <= 64:
+                        os_guess = "Linux / Unix / Android"
+                    elif ttl <= 128:
+                        os_guess = "Windows"
+                    else:
+                        os_guess = "Cisco / Network Device"
+                    print(f"  {YELLOW}◉ TTL : {ttl}  →  {os_guess}{RESET}")
+                except:
+                    pass
 
-@fperra_zbqr("CBEG FPNA")
-qrs cbeg_fpna(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vc = trg_vc(gnetrg)
-    vs abg vc:
-        cevag(s"  {ERQ}✗ Gvqnx ovfn erfbyir: {gnetrg}{ERFRG}")
-        erghea
+@screen_mode("PORT SCAN")
+def port_scan(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    ip = get_ip(target)
+    if not ip:
+        print(f"  {RED}✗ Tidak bisa resolve: {target}{RESET}")
+        return
 
-    frpgvba_gvgyr("Fpna Pbasvthengvba")
-    cevag(s"  {QVZ}{'Gnetrg':<45}{ERFRG}{JUVGR}{gnetrg}  ({vc}){ERFRG}")
-    cevag(s"  {QVZ}{'Cbegf':<45}{ERFRG}{JUVGR}{yra(PBZZBA_CBEGF)} pbzzba + phfgbz{ERFRG}")
-    cevag(s"  {QVZ}{'Zbqr':<45}{ERFRG}{JUVGR}Guernqrq · Onaare Teno · Evfx Ynory{ERFRG}")
+    section_title("Scan Configuration")
+    print(f"  {DIM}{'Target':<12}{RESET}{WHITE}{target}  ({ip}){RESET}")
+    print(f"  {DIM}{'Ports':<12}{RESET}{WHITE}{len(COMMON_PORTS)} common + custom{RESET}")
+    print(f"  {DIM}{'Mode':<12}{RESET}{WHITE}Threaded · Banner Grab · Risk Label{RESET}")
 
-    cevag()
-    cevag(s"  {LRYYBJ}Gnzonu phfgbz cbeg? pbagbu: 1111,2323  /  Ragre = fxvc{ERFRG}")
-    rkgen = vachg(s"  {QVZ}> {ERFRG}").fgevc()
-    rkgen_cbegf = {}
-    vs rkgen:
-        sbe rc va rkgen.fcyvg(","):
-            rc = rc.fgevc()
-            vs rc.vfqvtvg():
-                rkgen_cbegf[vag(rc)] = "PHFGBZ"
+    print()
+    print(f"  {YELLOW}Tambah custom port? contoh: 8888,9090  /  Enter = skip{RESET}")
+    extra = input(f"  {DIM}> {RESET}").strip()
+    extra_ports = {}
+    if extra:
+        for ep in extra.split(","):
+            ep = ep.strip()
+            if ep.isdigit():
+                extra_ports[int(ep)] = "CUSTOM"
 
-    nyy_cbegf = {**PBZZBA_CBEGF, **rkgen_cbegf}
-    bcra_cbegf = []
-    ybpx = guernqvat.Ybpx()
+    all_ports = {**COMMON_PORTS, **extra_ports}
+    open_ports = []
+    lock = threading.Lock()
 
-    UVTU_EVFX = {54,56,6612,8233,9602,50340,4766,6639}
-    ZRQ_EVFX  = {55,58,13,1313,1776,778,8765}
+    HIGH_RISK = {21,23,3389,5900,6379,27017,1433,3306}
+    MED_RISK  = {22,25,80,8080,8443,445,5432}
 
-    cevag_frc()
-    cevag(s"  {OBYQ}{JUVGR}{'FGNGHF':<43}{'CBEG':<1}{'FREIVPR':<48}{'ERFC':>0}  VASB{ERFRG}")
-    cevag_frc("─", QVZ, J)
+    print_sep()
+    print(f"  {BOLD}{WHITE}{'STATUS':<10}{'PORT':<8}{'SERVICE':<15}{'RESP':>7}  INFO{RESET}")
+    print_sep("─", DIM, W)
 
-    qrs purpx_cbeg(c, fip):
-        gel:
-            f = fbpxrg.fbpxrg(fbpxrg.NS_VARG, fbpxrg.FBPX_FGERNZ)
-            f.frggvzrbhg(3.1)
-            g3 = gvzr.gvzr()
-            erf = f.pbaarpg_rk((vc, c))
-            erfc_zf = ebhaq((gvzr.gvzr()-g3)*4333, 4)
-            f.pybfr()
-            jvgu ybpx:
-                vs erf == 3:
-                    onaare = teno_onaare(vc, c)
-                    o_fge = s"  {QVZ}{onaare}{ERFRG}" vs onaare ryfr ""
-                    vs c va UVTU_EVFX:
-                        evfx_gnt = s" {ERQ}[UVTU-EVFX]{ERFRG}"
-                    ryvs c va ZRQ_EVFX:
-                        evfx_gnt = s" {LRYYBJ}[ZRQ]{ERFRG}"
-                    ryfr:
-                        evfx_gnt = ""
-                    cevag(s"  {TERRA}● BCRA   {ERFRG}{c:<1}{fip:<48}{erfc_zf:>9.4s}zf{evfx_gnt}{o_fge}")
-                    bcra_cbegf.nccraq(c)
-                    fnir_ybt(s"CBEG BCRA {gnetrg}:{c} ({fip})")
-                ryfr:
-                    cevag(s"  {ERQ}○ PYBFRQ {ERFRG}{c:<1}{fip}{ERFRG}")
-        rkprcg Rkprcgvba nf r:
-            jvgu ybpx:
-                cevag(s"  {ERQ}✗ REEBE  {c:<1}{r}{ERFRG}")
+    def check_port(p, svc):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.8)
+            t0 = time.time()
+            res = s.connect_ex((ip, p))
+            resp_ms = round((time.time()-t0)*1000, 1)
+            s.close()
+            with lock:
+                if res == 0:
+                    banner = grab_banner(ip, p)
+                    b_str = f"  {DIM}{banner}{RESET}" if banner else ""
+                    if p in HIGH_RISK:
+                        risk_tag = f" {RED}[HIGH-RISK]{RESET}"
+                    elif p in MED_RISK:
+                        risk_tag = f" {YELLOW}[MED]{RESET}"
+                    else:
+                        risk_tag = ""
+                    print(f"  {GREEN}● OPEN   {RESET}{p:<8}{svc:<15}{resp_ms:>6.1f}ms{risk_tag}{b_str}")
+                    open_ports.append(p)
+                    save_log(f"PORT OPEN {target}:{p} ({svc})")
+                else:
+                    print(f"  {RED}○ CLOSED {RESET}{p:<8}{svc}{RESET}")
+        except Exception as e:
+            with lock:
+                print(f"  {RED}✗ ERROR  {p:<8}{e}{RESET}")
 
-    guernqf = []
-    sbe c, fip va fbegrq(nyy_cbegf.vgrzf()):
-        gu = guernqvat.Guernq(gnetrg=purpx_cbeg, netf=(c, fip))
-        gu.fgneg()
-        guernqf.nccraq(gu)
-    sbe gu va guernqf:
-        gu.wbva()
+    threads = []
+    for p, svc in sorted(all_ports.items()):
+        th = threading.Thread(target=check_port, args=(p, svc))
+        th.start()
+        threads.append(th)
+    for th in threads:
+        th.join()
 
-    cevag_frc()
-    cevag(s"\a  {PLNA}◉ Fryrfnv :  {JUVGR}{yra(bcra_cbegf)}{PLNA} / {yra(nyy_cbegf)} cbeg greohxn{ERFRG}")
-    vs bcra_cbegf:
-        cevag(s"  {TERRA}◉ Bcra    :  {fbegrq(bcra_cbegf)}{ERFRG}")
-        uvtu = [c sbe c va bcra_cbegf vs c va UVTU_EVFX]
-        vs uvtu:
-            cevag(s"  {ERQ}⚠ UVTU-EVFX cbeg greohxn :  {uvtu}{ERFRG}")
+    print_sep()
+    print(f"\n  {CYAN}◉ Selesai :  {WHITE}{len(open_ports)}{CYAN} / {len(all_ports)} port terbuka{RESET}")
+    if open_ports:
+        print(f"  {GREEN}◉ Open    :  {sorted(open_ports)}{RESET}")
+        high = [p for p in open_ports if p in HIGH_RISK]
+        if high:
+            print(f"  {RED}⚠ HIGH-RISK port terbuka :  {high}{RESET}")
 
-@fperra_zbqr("CVAT GNETRG")
-qrs cvat_gnetrg(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    cevag(s"  {LRYYBJ}Whzynu cnxrg (4–83, qrsnhyg 8) :{ERFRG}")
-    p = vachg(s"  {QVZ}> {ERFRG}").fgevc()
-    pbhag = vag(p) vs p.vfqvtvg() naq 4 <= vag(p) <= 83 ryfr 8
-    cevag(s"\a  {PLNA}◉ Cvat  {gnetrg}  ×{pbhag}...{ERFRG}\a")
+@screen_mode("PING TARGET")
+def ping_target(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    print(f"  {YELLOW}Jumlah paket (1–50, default 5) :{RESET}")
+    c = input(f"  {DIM}> {RESET}").strip()
+    count = int(c) if c.isdigit() and 1 <= int(c) <= 50 else 5
+    print(f"\n  {CYAN}◉ Ping  {target}  ×{count}...{RESET}\n")
 
-    e = eha(s"cvat -p {pbhag} {gnetrg}", gvzrbhg=pbhag*6+8)
-    vs e naq e.ergheapbqr == 3 naq e.fgqbhg:
-        gvzrf = []
-        sbe yvar va e.fgqbhg.fcyvg("\a"):
-            vs "gvzr=" va yvar:
-                gel:
-                    zf = sybng(er.frnepu(e"gvzr=([\q.]+)", yvar).tebhc(4))
-                    gvzrf.nccraq(zf)
-                    pbybe = TERRA vs zf < 83 ryfr (LRYYBJ vs zf < 483 ryfr ERQ)
-                    cevag(s"  {pbybe}{yvar.fgevc()}{ERFRG}")
-                rkprcg:
-                    cevag(s"  {yvar.fgevc()}")
-            ryvs yvar.fgevc():
-                cevag(s"  {QVZ}{yvar.fgevc()}{ERFRG}")
+    r = run(f"ping -c {count} {target}", timeout=count*3+5)
+    if r and r.returncode == 0 and r.stdout:
+        times = []
+        for line in r.stdout.split("\n"):
+            if "time=" in line:
+                try:
+                    ms = float(re.search(r"time=([\d.]+)", line).group(1))
+                    times.append(ms)
+                    color = GREEN if ms < 50 else (YELLOW if ms < 150 else RED)
+                    print(f"  {color}{line.strip()}{RESET}")
+                except:
+                    print(f"  {line.strip()}")
+            elif line.strip():
+                print(f"  {DIM}{line.strip()}{RESET}")
 
-        vs yra(gvzrf) >= 5:
-            cevag_frc()
-            frpgvba_gvgyr("Fgngvfgvpf")
-            cevag(s"  {QVZ}{'Zva':<43}{ERFRG}{JUVGR}{zva(gvzrf):.5s} zf{ERFRG}")
-            cevag(s"  {QVZ}{'Znk':<43}{ERFRG}{JUVGR}{znk(gvzrf):.5s} zf{ERFRG}")
-            cevag(s"  {QVZ}{'Nit':<43}{ERFRG}{JUVGR}{fhz(gvzrf)/yra(gvzrf):.5s} zf{ERFRG}")
-            wvggre = znk(gvzrf) - zva(gvzrf)
-            wvggre_d = "Fgnovy" vs wvggre < 43 ryfr ("BX" vs wvggre < 83 ryfr "Gvqnx Fgnovy")
-            pbybe = TERRA vs wvggre < 43 ryfr (LRYYBJ vs wvggre < 83 ryfr ERQ)
-            cevag(s"  {QVZ}{'Wvggre':<43}{ERFRG}{pbybe}{wvggre:.5s} zf  [{wvggre_d}]{ERFRG}")
+        if len(times) >= 2:
+            print_sep()
+            section_title("Statistics")
+            print(f"  {DIM}{'Min':<10}{RESET}{WHITE}{min(times):.2f} ms{RESET}")
+            print(f"  {DIM}{'Max':<10}{RESET}{WHITE}{max(times):.2f} ms{RESET}")
+            print(f"  {DIM}{'Avg':<10}{RESET}{WHITE}{sum(times)/len(times):.2f} ms{RESET}")
+            jitter = max(times) - min(times)
+            jitter_q = "Stabil" if jitter < 10 else ("OK" if jitter < 50 else "Tidak Stabil")
+            color = GREEN if jitter < 10 else (YELLOW if jitter < 50 else RED)
+            print(f"  {DIM}{'Jitter':<10}{RESET}{color}{jitter:.2f} ms  [{jitter_q}]{RESET}")
 
-        sbe yvar va e.fgqbhg.fcyvg("\a"):
-            vs "cnpxrg ybff" va yvar be "erprvirq" va yvar:
-                zngpu = er.frnepu(e"(\q+)% cnpxrg ybff", yvar)
-                vs zngpu:
-                    ybff = vag(zngpu.tebhc(4))
-                    pbybe = TERRA vs ybff == 3 ryfr (LRYYBJ vs ybff < 53 ryfr ERQ)
-                    cevag(s"  {QVZ}{'Ybff':<43}{ERFRG}{pbybe}{ybff}%{ERFRG}")
-    ryfr:
-        cevag(s"  {ERQ}✗ Cvat tntny.  Ubfg zhatxva oybxve VPZC.{ERFRG}")
+        for line in r.stdout.split("\n"):
+            if "packet loss" in line or "received" in line:
+                match = re.search(r"(\d+)% packet loss", line)
+                if match:
+                    loss = int(match.group(1))
+                    color = GREEN if loss == 0 else (YELLOW if loss < 20 else RED)
+                    print(f"  {DIM}{'Loss':<10}{RESET}{color}{loss}%{RESET}")
+    else:
+        print(f"  {RED}✗ Ping gagal.  Host mungkin blokir ICMP.{RESET}")
 
-@fperra_zbqr("GENPR EBHGR")
-qrs genpr_ebhgr(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("genprebhgr"):
-        erghea
-    cevag(s"  {PLNA}◉ Genpvat ebhgr xr {gnetrg}  (znk 53 ubc)...{ERFRG}\a")
+@screen_mode("TRACE ROUTE")
+def trace_route(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("traceroute"):
+        return
+    print(f"  {CYAN}◉ Tracing route ke {target}  (max 20 hop)...{RESET}\n")
 
-    e = eha(s"genprebhgr -z 53 -j 5 {gnetrg}", gvzrbhg=23)
-    vs e naq e.fgqbhg.fgevc():
-        gvzrbhg_ubcf = 3
-        sbe yvar va e.fgqbhg.fgevc().fcyvg("\a"):
-            vs "* * *" va yvar:
-                gvzrbhg_ubcf += 4
-                cevag(s"  {ERQ}{yvar}  ← gvzrbhg / svygrerq{ERFRG}")
-            ryfr:
-                zf_inyf = er.svaqnyy(e"([\q.]+) zf", yvar)
-                vs zf_inyf:
-                    nit_ubc = fhz(sybng(i) sbe i va zf_inyf) / yra(zf_inyf)
-                    pbybe = TERRA vs nit_ubc < 83 ryfr (LRYYBJ vs nit_ubc < 483 ryfr ERQ)
-                    cevag(s"  {pbybe}{yvar}{ERFRG}")
-                ryfr:
-                    cevag(s"  {QVZ}{yvar}{ERFRG}")
-        vs gvzrbhg_ubcf > 8:
-            cevag(s"\a  {LRYYBJ}⚠ {gvzrbhg_ubcf} ubc gvzrbhg — xrzhatxvana nqn sverjnyy qv gratnu ehgr.{ERFRG}")
-    ryfr:
-        cevag(s"  {ERQ}✗ Genprebhgr tntny.{ERFRG}")
+    r = run(f"traceroute -m 20 -w 2 {target}", timeout=90)
+    if r and r.stdout.strip():
+        timeout_hops = 0
+        for line in r.stdout.strip().split("\n"):
+            if "* * *" in line:
+                timeout_hops += 1
+                print(f"  {RED}{line}  ← timeout / filtered{RESET}")
+            else:
+                ms_vals = re.findall(r"([\d.]+) ms", line)
+                if ms_vals:
+                    avg_hop = sum(float(v) for v in ms_vals) / len(ms_vals)
+                    color = GREEN if avg_hop < 50 else (YELLOW if avg_hop < 150 else RED)
+                    print(f"  {color}{line}{RESET}")
+                else:
+                    print(f"  {DIM}{line}{RESET}")
+        if timeout_hops > 5:
+            print(f"\n  {YELLOW}⚠ {timeout_hops} hop timeout — kemungkinan ada firewall di tengah rute.{RESET}")
+    else:
+        print(f"  {RED}✗ Traceroute gagal.{RESET}")
 
-@fperra_zbqr("AZNC FPNAARE")
-qrs nqinaprq_fpna(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("aznc"):
-        erghea
+@screen_mode("NMAP SCANNER")
+def advanced_scan(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("nmap"):
+        return
 
-    frpgvba_gvgyr("Cvyvu Zbqr Fpna")
-    bcgvbaf = [
-        ("4", "Snfg fpna",       "-S --bcra",                   TERRA),
-        ("5", "Freivpr irefvba", "-fI --irefvba-vagrafvgl 8",   PLNA),
-        ("6", "BF Qrgrpgvba",    "-B",                           LRYYBJ),
-        ("7", "Shyy + Fpevcg",   "-N",                           ZNTRAGN),
-        ("8", "HQC Fpna",        "-fH -S",                       OYHR),
-        ("9", "Fgrnygu FLA",     "-fF -S",                       ERQ),
+    section_title("Pilih Mode Scan")
+    options = [
+        ("1", "Fast scan",       "-F --open",                   GREEN),
+        ("2", "Service version", "-sV --version-intensity 5",   CYAN),
+        ("3", "OS Detection",    "-O",                           YELLOW),
+        ("4", "Full + Script",   "-A",                           MAGENTA),
+        ("5", "UDP Scan",        "-sU -F",                       BLUE),
+        ("6", "Stealth SYN",     "-sS -F",                       RED),
     ]
-    sbe ahz, ynory, synt, pby va bcgvbaf:
-        cevag(s"  {pby}  [{ahz}]  {ynory:<41}{QVZ}{synt}{ERFRG}")
+    for num, label, flag, col in options:
+        print(f"  {col}  [{num}]  {label:<18}{DIM}{flag}{RESET}")
 
-    cevag()
-    zbqr = vachg(fxljvatf_pbqrk()).fgevc()
-    syntf = {
-        "4":"-S --bcra",
-        "5":"-fI --irefvba-vagrafvgl 8",
-        "6":"-B",
-        "7":"-N",
-        "8":"-fH -S",
-        "9":"-fF -S",
-    }.trg(zbqr, "-S --bcra")
+    print()
+    mode = input(skywings_codex()).strip()
+    flags = {
+        "1":"-F --open",
+        "2":"-sV --version-intensity 5",
+        "3":"-O",
+        "4":"-A",
+        "5":"-sU -F",
+        "6":"-sS -F",
+    }.get(mode, "-F --open")
 
-    cevag(s"\a  {PLNA}◉ Aznc  {gnetrg}  [{syntf}]{ERFRG}\a")
-    erfhyg = eha(s"aznc {syntf} {gnetrg}", gvzrbhg=453)
-    vs erfhyg naq erfhyg.fgqbhg:
-        sbe yvar va erfhyg.fgqbhg.fcyvg("\a"):
-            vs "bcra" va yvar.ybjre():
-                cevag(s"  {TERRA}{yvar}{ERFRG}")
-            ryvs "svygrerq" va yvar.ybjre() be "pybfrq" va yvar.ybjre():
-                cevag(s"  {ERQ}{yvar}{ERFRG}")
-            ryfr:
-                cevag(s"  {QVZ}{yvar}{ERFRG}")
-        fnir_ybt(s"AZNC {gnetrg}: {syntf}")
-    ryfr:
-        cevag(s"  {ERQ}✗ Aznc tntny.{ERFRG}")
+    print(f"\n  {CYAN}◉ Nmap  {target}  [{flags}]{RESET}\n")
+    result = run(f"nmap {flags} {target}", timeout=120)
+    if result and result.stdout:
+        for line in result.stdout.split("\n"):
+            if "open" in line.lower():
+                print(f"  {GREEN}{line}{RESET}")
+            elif "filtered" in line.lower() or "closed" in line.lower():
+                print(f"  {RED}{line}{RESET}")
+            else:
+                print(f"  {DIM}{line}{RESET}")
+        save_log(f"NMAP {target}: {flags}")
+    else:
+        print(f"  {RED}✗ Nmap gagal.{RESET}")
 
-@fperra_zbqr("SVERJNYY PURPX")
-qrs sverjnyy_purpx():
-    frpgvba_gvgyr("vcgnoyrf")
-    e = eha("vcgnoyrf -Y -a -i 5>/qri/ahyy")
-    vs e naq e.fgqbhg.fgevc():
-        cevag(e.fgqbhg[:5333])
-    ryfr:
-        cevag(s"  {LRYYBJ}⚠ vcgnoyrf gvqnx nxgvs / ohghu ebbg.{ERFRG}")
+@screen_mode("FIREWALL CHECK")
+def firewall_check():
+    section_title("iptables")
+    r = run("iptables -L -n -v 2>/dev/null")
+    if r and r.stdout.strip():
+        print(r.stdout[:2000])
+    else:
+        print(f"  {YELLOW}⚠ iptables tidak aktif / butuh root.{RESET}")
 
-    hsj = eha("hsj fgnghf ireobfr 5>/qri/ahyy")
-    vs hsj naq hsj.fgqbhg.fgevc():
-        frpgvba_gvgyr("HSJ")
-        cevag(hsj.fgqbhg[:833])
+    ufw = run("ufw status verbose 2>/dev/null")
+    if ufw and ufw.stdout.strip():
+        section_title("UFW")
+        print(ufw.stdout[:500])
 
-    asg = eha("asg yvfg ehyrfrg 5>/qri/ahyy")
-    vs asg naq asg.fgqbhg.fgevc():
-        frpgvba_gvgyr("asgnoyrf")
-        cevag(asg.fgqbhg[:833])
+    nft = run("nft list ruleset 2>/dev/null")
+    if nft and nft.stdout.strip():
+        section_title("nftables")
+        print(nft.stdout[:500])
 
-qrs fnir_bhgchg_qrzb(gnetrg):
-    gnetrg = gnetrg.fgevc()
-    vs abg vf_inyvq_gnetrg(gnetrg):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    gel:
-        vc = trg_vc(gnetrg)
-        jvgu bcra("fpna_erfhyg.gkg", "n") nf s:
-            s.jevgr(s"\a{'='*83}\a")
-            s.jevgr(s"Gvzr   : {qngrgvzr.abj()}\a")
-            s.jevgr(s"Gnetrg : {gnetrg}\a")
-            s.jevgr(s"VC     : {vc be 'Tntny erfbyir'}\a")
-            vs vc:
-                s.jevgr("Cbegf  :\a")
-                sbe c, fip va fbegrq(PBZZBA_CBEGF.vgrzf()):
-                    f = fbpxrg.fbpxrg()
-                    f.frggvzrbhg(3.8)
-                    vs f.pbaarpg_rk((vc, c)) == 3:
-                        s.jevgr(s"  BCRA {c} ({fip})\a")
-                    f.pybfr()
-        cevag(s"  {TERRA}◉ Fnirq  →  fpna_erfhyg.gkg{ERFRG}")
-        fnir_ybt(s"FNIRQ {gnetrg}")
-    rkprcg Rkprcgvba nf r:
-        cevag(s"  {ERQ}✗ Tntny fnir: {r}{ERFRG}")
+def save_output_demo(target):
+    target = target.strip()
+    if not is_valid_target(target):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    try:
+        ip = get_ip(target)
+        with open("scan_result.txt", "a") as f:
+            f.write(f"\n{'='*50}\n")
+            f.write(f"Time   : {datetime.now()}\n")
+            f.write(f"Target : {target}\n")
+            f.write(f"IP     : {ip or 'Gagal resolve'}\n")
+            if ip:
+                f.write("Ports  :\n")
+                for p, svc in sorted(COMMON_PORTS.items()):
+                    s = socket.socket()
+                    s.settimeout(0.5)
+                    if s.connect_ex((ip, p)) == 0:
+                        f.write(f"  OPEN {p} ({svc})\n")
+                    s.close()
+        print(f"  {GREEN}◉ Saved  →  scan_result.txt{RESET}")
+        save_log(f"SAVED {target}")
+    except Exception as e:
+        print(f"  {RED}✗ Gagal save: {e}{RESET}")
 
-@fperra_zbqr("FLFGRZ VASB")
-qrs flfgrz_vasb():
-    frpgvba_gvgyr("BF & Znpuvar")
-    vasb = [
-        ("BF",       s"{cyngsbez.flfgrz()} {cyngsbez.eryrnfr()}"),
-        ("Irefvba",  cyngsbez.irefvba()[:93]),
-        ("Abqr",     cyngsbez.abqr()),
-        ("Znpuvar",  cyngsbez.znpuvar()),
-        ("PCH",      cyngsbez.cebprffbe() be "A/N"),
+@screen_mode("SYSTEM INFO")
+def system_info():
+    section_title("OS & Machine")
+    info = [
+        ("OS",       f"{platform.system()} {platform.release()}"),
+        ("Version",  platform.version()[:60]),
+        ("Node",     platform.node()),
+        ("Machine",  platform.machine()),
+        ("CPU",      platform.processor() or "N/A"),
     ]
-    sbe x, i va vasb:
-        cevag(s"  {QVZ}{x:<45}{ERFRG}{JUVGR}{i}{ERFRG}")
+    for k, v in info:
+        print(f"  {DIM}{k:<12}{RESET}{WHITE}{v}{RESET}")
 
-    gel:
-        cevag(s"  {QVZ}{'Ybpny VC':<45}{ERFRG}{TERRA}{fbpxrg.trgubfgolanzr(fbpxrg.trgubfganzr())}{ERFRG}")
-    rkprcg:
-        cnff
+    try:
+        print(f"  {DIM}{'Local IP':<12}{RESET}{GREEN}{socket.gethostbyname(socket.gethostname())}{RESET}")
+    except:
+        pass
 
-    vs gbby_purpx("phey"):
-        e = eha("phey -f --znk-gvzr 8 vspbasvt.zr 5>/qri/ahyy")
-        vs e naq e.fgqbhg.fgevc():
-            cevag(s"  {QVZ}{'Choyvp VC':<45}{ERFRG}{PLNA}{e.fgqbhg.fgevc()}{ERFRG}")
+    if tool_check("curl"):
+        r = run("curl -s --max-time 5 ifconfig.me 2>/dev/null")
+        if r and r.stdout.strip():
+            print(f"  {DIM}{'Public IP':<12}{RESET}{CYAN}{r.stdout.strip()}{RESET}")
 
-    zrz = eha("serr -u 5>/qri/ahyy")
-    vs zrz naq zrz.fgqbhg:
-        frpgvba_gvgyr("Zrzbel")
-        cevag(zrz.fgqbhg)
+    mem = run("free -h 2>/dev/null")
+    if mem and mem.stdout:
+        section_title("Memory")
+        print(mem.stdout)
 
-    qvfx = eha("qs -u 5>/qri/ahyy")
-    vs qvfx naq qvfx.fgqbhg:
-        frpgvba_gvgyr("Qvfx Hfntr")
-        sbe y va qvfx.fgqbhg.fgevc().fcyvg("\a")[:8]:
-            cevag(s"  {y}")
+    disk = run("df -h 2>/dev/null")
+    if disk and disk.stdout:
+        section_title("Disk Usage")
+        for l in disk.stdout.strip().split("\n")[:5]:
+            print(f"  {l}")
 
-    hc = eha("hcgvzr 5>/qri/ahyy")
-    vs hc naq hc.fgqbhg:
-        cevag(s"\a  {QVZ}{'Hcgvzr':<45}{ERFRG}{JUVGR}{hc.fgqbhg.fgevc()}{ERFRG}")
+    up = run("uptime 2>/dev/null")
+    if up and up.stdout:
+        print(f"\n  {DIM}{'Uptime':<12}{RESET}{WHITE}{up.stdout.strip()}{RESET}")
 
-    vspbasvt = eha("vc nqqe fubj 5>/qri/ahyy || vspbasvt 5>/qri/ahyy")
-    vs vspbasvt naq vspbasvt.fgqbhg:
-        frpgvba_gvgyr("Argjbex Vagresnprf")
-        sbe yvar va vspbasvt.fgqbhg.fcyvg("\a"):
-            vs "varg " va yvar be ": <" va yvar be "syntf" va yvar:
-                cevag(s"  {QVZ}{yvar.fgevc()}{ERFRG}")
+    ifconfig = run("ip addr show 2>/dev/null || ifconfig 2>/dev/null")
+    if ifconfig and ifconfig.stdout:
+        section_title("Network Interfaces")
+        for line in ifconfig.stdout.split("\n"):
+            if "inet " in line or ": <" in line or "flags" in line:
+                print(f"  {DIM}{line.strip()}{RESET}")
 
-    gbc_e = eha("cf nhk --fbeg=-%pch 5>/qri/ahyy | urnq -9")
-    vs gbc_e naq gbc_e.fgqbhg:
-        frpgvba_gvgyr("Gbc Cebprffrf  (PCH)")
-        sbe y va gbc_e.fgqbhg.fgevc().fcyvg("\a"):
-            cevag(s"  {y}")
+    top_r = run("ps aux --sort=-%cpu 2>/dev/null | head -6")
+    if top_r and top_r.stdout:
+        section_title("Top Processes  (CPU)")
+        for l in top_r.stdout.strip().split("\n"):
+            print(f"  {l}")
 
-@fperra_zbqr("SNFG FPNA")
-qrs snfg_fpna(gnetrgf):
-    vs abg gnetrgf:
-        cevag(s"  {ERQ}✗ Gvqnx nqn gnetrg.{ERFRG}")
-        erghea
-    erfhygf = {}
-    ybpx = guernqvat.Ybpx()
+@screen_mode("FAST SCAN")
+def fast_scan(targets):
+    if not targets:
+        print(f"  {RED}✗ Tidak ada target.{RESET}")
+        return
+    results = {}
+    lock = threading.Lock()
 
-    qrs fpna(g):
-        g = g.fgevc()
-        vs abg g:
-            erghea
-        fgneg = gvzr.gvzr()
-        e = eha(s"cvat -p 4 -J 4 {g}", gvzrbhg=8)
-        zf = ebhaq((gvzr.gvzr()-fgneg)*4333, 4)
-        vc = trg_vc(g)
-        jvgu ybpx:
-            vs e naq e.ergheapbqr == 3:
-                bcra_c = []
-                sbe c va [13, 776, 55]:
-                    f = fbpxrg.fbpxrg()
-                    f.frggvzrbhg(3.8)
-                    vs vc naq f.pbaarpg_rk((vc, c)) == 3:
-                        bcra_c.nccraq(c)
-                    f.pybfr()
-                cbeg_fge = s"  {QVZ}cbegf:{bcra_c}{ERFRG}" vs bcra_c ryfr ""
-                erfhygf[g] = ("HC", vc)
-                cevag(s"  {TERRA}● HC    {g:<57}→  {vc be '?':<41} {zf}zf{cbeg_fge}{ERFRG}")
-            ryfr:
-                erfhygf[g] = ("QBJA", Abar)
-                cevag(s"  {ERQ}○ QBJA  {g}{ERFRG}")
+    def scan(t):
+        t = t.strip()
+        if not t:
+            return
+        start = time.time()
+        r = run(f"ping -c 1 -W 1 {t}", timeout=5)
+        ms = round((time.time()-start)*1000, 1)
+        ip = get_ip(t)
+        with lock:
+            if r and r.returncode == 0:
+                open_p = []
+                for p in [80, 443, 22]:
+                    s = socket.socket()
+                    s.settimeout(0.5)
+                    if ip and s.connect_ex((ip, p)) == 0:
+                        open_p.append(p)
+                    s.close()
+                port_str = f"  {DIM}ports:{open_p}{RESET}" if open_p else ""
+                results[t] = ("UP", ip)
+                print(f"  {GREEN}● UP    {t:<24}→  {ip or '?':<18} {ms}ms{port_str}{RESET}")
+            else:
+                results[t] = ("DOWN", None)
+                print(f"  {RED}○ DOWN  {t}{RESET}")
 
-    cevag(s"  {PLNA}◉ Fpnaavat {yra(gnetrgf)} gnetrg cnenyyry...\a{ERFRG}")
-    cevag_frc("─", QVZ, J)
-    guernqf = [guernqvat.Guernq(gnetrg=fpna, netf=(g,)) sbe g va gnetrgf]
-    sbe gu va guernqf: gu.fgneg()
-    sbe gu va guernqf: gu.wbva()
+    print(f"  {CYAN}◉ Scanning {len(targets)} target parallel...\n{RESET}")
+    print_sep("─", DIM, W)
+    threads = [threading.Thread(target=scan, args=(t,)) for t in targets]
+    for th in threads: th.start()
+    for th in threads: th.join()
 
-    hc = fhz(4 sbe i va erfhygf.inyhrf() vs i[3]=="HC")
-    cevag_frc()
-    cevag(s"  {PLNA}◉ {JUVGR}{hc}{PLNA} / {yra(gnetrgf)} ubfg nxgvs.{ERFRG}")
+    up = sum(1 for v in results.values() if v[0]=="UP")
+    print_sep()
+    print(f"  {CYAN}◉ {WHITE}{up}{CYAN} / {len(targets)} host aktif.{RESET}")
 
-@fperra_zbqr("JUBVF")
-qrs jubvf_ybbxhc(g):
-    g = fgevc_fpurzr(g)
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("jubvf"):
-        erghea
-    cevag(s"  {PLNA}◉ JUBVF  {g}...{ERFRG}\a")
+@screen_mode("WHOIS")
+def whois_lookup(t):
+    t = strip_scheme(t)
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("whois"):
+        return
+    print(f"  {CYAN}◉ WHOIS  {t}...{RESET}\n")
 
-    e = eha(s"jubvf {g}", gvzrbhg=53)
-    vs e naq e.fgqbhg.fgevc():
-        yvarf = [y sbe y va e.fgqbhg.fcyvg("\a") vs y.fgevc() naq abg y.fgnegfjvgu("%")]
-        vzcbegnag_xrlf = ["ertvfgene","anzr freire","rkcve","perng","hcqng","fgnghf","ertvfgenag","qaffrp","grpu","nqzva"]
-        frra = frg()
-        sbe yvar va yvarf[:453]:
-            xrl = yvar.fcyvg(":")[3].ybjre().fgevc() vs ":" va yvar ryfr ""
-            vs xrl va frra:
-                pbagvahr
-            vs nal(k va xrl sbe k va vzcbegnag_xrlf):
-                frra.nqq(xrl)
-                vs "rkcve" va xrl:
-                    gel:
-                        qngr_cneg = yvar.fcyvg(":",4)[4].fgevc()
-                        sbe szg va ["%L-%z-%qG%U:%Z:%FM","%L-%z-%q","%q-%o-%L"]:
-                            gel:
-                                rkc_qngr = qngrgvzr.fgecgvzr(qngr_cneg[:43], szg[:yra(qngr_cneg[:43])])
-                                qnlf_yrsg = (rkc_qngr - qngrgvzr.hgpabj()).qnlf
-                                vs qnlf_yrsg < 3:
-                                    cevag(s"  {ERQ}◉ {yvar}  ← RKCVERQ {nof(qnlf_yrsg)} unev ynyh!{ERFRG}")
-                                ryvs qnlf_yrsg < 63:
-                                    cevag(s"  {LRYYBJ}◉ {yvar}  ← {qnlf_yrsg} unev yntv!{ERFRG}")
-                                ryfr:
-                                    cevag(s"  {TERRA}◉ {yvar}  ({qnlf_yrsg} unev yntv){ERFRG}")
-                                oernx
-                            rkprcg:
-                                pbagvahr
-                        ryfr:
-                            cevag(s"  {LRYYBJ}{yvar}{ERFRG}")
-                    rkprcg:
-                        cevag(s"  {LRYYBJ}{yvar}{ERFRG}")
-                ryfr:
-                    cevag(s"  {LRYYBJ}{yvar}{ERFRG}")
-            ryfr:
-                cevag(s"  {QVZ}{yvar}{ERFRG}")
-        fnir_ybt(s"JUBVF {g}")
-    ryfr:
-        cevag(s"  {ERQ}✗ JUBVF tntny.{ERFRG}")
+    r = run(f"whois {t}", timeout=20)
+    if r and r.stdout.strip():
+        lines = [l for l in r.stdout.split("\n") if l.strip() and not l.startswith("%")]
+        important_keys = ["registrar","name server","expir","creat","updat","status","registrant","dnssec","tech","admin"]
+        seen = set()
+        for line in lines[:120]:
+            key = line.split(":")[0].lower().strip() if ":" in line else ""
+            if key in seen:
+                continue
+            if any(x in key for x in important_keys):
+                seen.add(key)
+                if "expir" in key:
+                    try:
+                        date_part = line.split(":",1)[1].strip()
+                        for fmt in ["%Y-%m-%dT%H:%M:%SZ","%Y-%m-%d","%d-%b-%Y"]:
+                            try:
+                                exp_date = datetime.strptime(date_part[:10], fmt[:len(date_part[:10])])
+                                days_left = (exp_date - datetime.utcnow()).days
+                                if days_left < 0:
+                                    print(f"  {RED}◉ {line}  ← EXPIRED {abs(days_left)} hari lalu!{RESET}")
+                                elif days_left < 30:
+                                    print(f"  {YELLOW}◉ {line}  ← {days_left} hari lagi!{RESET}")
+                                else:
+                                    print(f"  {GREEN}◉ {line}  ({days_left} hari lagi){RESET}")
+                                break
+                            except:
+                                continue
+                        else:
+                            print(f"  {YELLOW}{line}{RESET}")
+                    except:
+                        print(f"  {YELLOW}{line}{RESET}")
+                else:
+                    print(f"  {YELLOW}{line}{RESET}")
+            else:
+                print(f"  {DIM}{line}{RESET}")
+        save_log(f"WHOIS {t}")
+    else:
+        print(f"  {RED}✗ WHOIS gagal.{RESET}")
 
-@fperra_zbqr("TRB VC")
-qrs trb_vc(g):
-    g = fgevc_fpurzr(g)
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("phey"):
-        erghea
-    vc = trg_vc(g)
-    dhrel = vc vs vc ryfr g
-    cevag(s"  {PLNA}◉ TrbVC  {g}  →  {dhrel}{ERFRG}\a")
+@screen_mode("GEO IP")
+def geo_ip(t):
+    t = strip_scheme(t)
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("curl"):
+        return
+    ip = get_ip(t)
+    query = ip if ip else t
+    print(f"  {CYAN}◉ GeoIP  {t}  →  {query}{RESET}\n")
 
-    e = eha(s"phey -f --znk-gvzr 43 vcvasb.vb/{dhrel}")
-    vs e naq e.fgqbhg.fgevc():
-        gel:
-            qngn = wfba.ybnqf(e.fgqbhg)
-            vs qngn.trg("obtba"):
-                cevag(s"  {LRYYBJ}⚠ VC cevingr/obtba — gvqnx nqn trb vasb.{ERFRG}")
-                erghea
-            cevag_frc()
-            svryqf = [
-                ("VC",        "vc"),
-                ("Ubfganzr",  "ubfganzr"),
-                ("Xbgn",      "pvgl"),
-                ("Ertvba",    "ertvba"),
-                ("Artnen",    "pbhagel"),
-                ("Ybxnfv",    "ybp"),
-                ("VFC / BET", "bet"),
-                ("Cbfgny",    "cbfgny"),
-                ("Gvzrmbar",  "gvzrmbar"),
+    r = run(f"curl -s --max-time 10 ipinfo.io/{query}")
+    if r and r.stdout.strip():
+        try:
+            data = json.loads(r.stdout)
+            if data.get("bogon"):
+                print(f"  {YELLOW}⚠ IP private/bogon — tidak ada geo info.{RESET}")
+                return
+            print_sep()
+            fields = [
+                ("IP",        "ip"),
+                ("Hostname",  "hostname"),
+                ("Kota",      "city"),
+                ("Region",    "region"),
+                ("Negara",    "country"),
+                ("Lokasi",    "loc"),
+                ("ISP / ORG", "org"),
+                ("Postal",    "postal"),
+                ("Timezone",  "timezone"),
             ]
-            sbe ynory, xrl va svryqf:
-                iny = qngn.trg(xrl, "A/N")
-                pbybe = JUVGR vs iny naq iny != "A/N" ryfr ERQ
-                cevag(s"  {QVZ}{ynory:<45}{ERFRG}{pbybe}{iny}{ERFRG}")
+            for label, key in fields:
+                val = data.get(key, "N/A")
+                color = WHITE if val and val != "N/A" else RED
+                print(f"  {DIM}{label:<12}{RESET}{color}{val}{RESET}")
 
-            ybp = qngn.trg("ybp","")
-            vs ybp:
-                yng, yba = ybp.fcyvg(",")
-                cevag(s"\a  {PLNA}◉ Zncf  →  uggcf://zncf.tbbtyr.pbz/?d={yng},{yba}{ERFRG}")
+            loc = data.get("loc","")
+            if loc:
+                lat, lon = loc.split(",")
+                print(f"\n  {CYAN}◉ Maps  →  https://maps.google.com/?q={lat},{lon}{RESET}")
 
-            bet = qngn.trg("bet","")
-            ubfgvat_xrljbeqf = ["ubfgvat","freire","pybhq","qngnpragre","icf","njf","nmher","tbbtyr","qvtvgnybprna","yvabqr","ihyge","biu"]
-            vs nal(xj va bet.ybjre() sbe xj va ubfgvat_xrljbeqf):
-                cevag(s"  {LRYYBJ}⚠ Xrzhatxvana Ubfgvat / ICA / Pybhq{ERFRG}")
+            org = data.get("org","")
+            hosting_keywords = ["hosting","server","cloud","datacenter","vps","aws","azure","google","digitalocean","linode","vultr","ovh"]
+            if any(kw in org.lower() for kw in hosting_keywords):
+                print(f"  {YELLOW}⚠ Kemungkinan Hosting / VPN / Cloud{RESET}")
 
-            fnir_ybt(s"TRBVC {g}: {qngn.trg('pvgl')},{qngn.trg('pbhagel')}")
-        rkprcg wfba.WFBAQrpbqrReebe:
-            cevag(e.fgqbhg[:833])
-    ryfr:
-        cevag(s"  {ERQ}✗ Tntny TrbVC. Prx vagrearg.{ERFRG}")
+            save_log(f"GEOIP {t}: {data.get('city')},{data.get('country')}")
+        except json.JSONDecodeError:
+            print(r.stdout[:500])
+    else:
+        print(f"  {RED}✗ Gagal GeoIP. Cek internet.{RESET}")
 
-@fperra_zbqr("UGGC URNQRE")
-qrs uggc_urnqre_fpna(g):
-    g = g.fgevc()
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("phey"):
-        erghea
-    cevag(s"  {PLNA}◉ Urnqref qnev  {g}...{ERFRG}\a")
+@screen_mode("HTTP HEADER")
+def http_header_scan(t):
+    t = t.strip()
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("curl"):
+        return
+    print(f"  {CYAN}◉ Headers dari  {t}...{RESET}\n")
 
-    e = eha(s"phey -V -f --znk-gvzr 43 -Y -N 'Zbmvyyn/8.3' --znk-erqvef 8 {g}")
-    vs abg (e naq e.fgqbhg.fgevc()):
-        g_uggc = g.ercynpr("uggcf://","uggc://")
-        e = eha(s"phey -V -f --znk-gvzr 43 {g_uggc}")
-        vs abg (e naq e.fgqbhg.fgevc()):
-            cevag(s"  {ERQ}✗ Tntny nzovy urnqre.{ERFRG}")
-            erghea
+    r = run(f"curl -I -s --max-time 10 -L -A 'Mozilla/5.0' --max-redirs 5 {t}")
+    if not (r and r.stdout.strip()):
+        t_http = t.replace("https://","http://")
+        r = run(f"curl -I -s --max-time 10 {t_http}")
+        if not (r and r.stdout.strip()):
+            print(f"  {RED}✗ Gagal ambil header.{RESET}")
+            return
 
-    frphevgl_urnqref = {
-        "fgevpg-genafcbeg-frphevgl":"UFGF",
-        "pbagrag-frphevgl-cbyvpl":"PFC",
-        "k-senzr-bcgvbaf":"Pyvpxwnpxvat Cebgrpg",
-        "k-kff-cebgrpgvba":"KFF Cebgrpg",
-        "k-pbagrag-glcr-bcgvbaf":"ZVZR Favss Cebgrpg",
-        "ersreere-cbyvpl":"Ersreere Cbyvpl",
-        "crezvffvbaf-cbyvpl":"Crezvffvbaf Cbyvpl",
+    security_headers = {
+        "strict-transport-security":"HSTS",
+        "content-security-policy":"CSP",
+        "x-frame-options":"Clickjacking Protect",
+        "x-xss-protection":"XSS Protect",
+        "x-content-type-options":"MIME Sniff Protect",
+        "referrer-policy":"Referrer Policy",
+        "permissions-policy":"Permissions Policy",
     }
-    sbhaq_frp = []
-    erqverpg_pbhag = 3
+    found_sec = []
+    redirect_count = 0
 
-    cevag_frc()
-    sbe yvar va e.fgqbhg.fcyvg("\a"):
-        yvar = yvar.fgevc()
-        vs abg yvar:
-            pbagvahr
-        ybj = yvar.ybjre()
-        vs yvar.fgnegfjvgu("UGGC/"):
-            cnegf = yvar.fcyvg()
-            pbqr = cnegf[4] vs yra(cnegf) > 4 ryfr "?"
-            qrfp = {
-                "533":"BX","634":"Zbirq Creznaragyl","635":"Sbhaq",
-                "637":"Abg Zbqvsvrq","733":"Onq Erdhrfg","734":"Hanhgubevmrq",
-                "736":"Sbeovqqra","737":"Abg Sbhaq","833":"Vagreany Freire Reebe",
-                "836":"Freivpr Haninvynoyr"
-            }.trg(pbqr,"")
-            pbybe = TERRA vs pbqr.fgnegfjvgu("5") ryfr (LRYYBJ vs pbqr.fgnegfjvgu("6") ryfr ERQ)
-            cevag(s"  {pbybe}{OBYQ}{yvar}  {qrfp}{ERFRG}")
-            vs pbqr.fgnegfjvgu("6"):
-                erqverpg_pbhag += 4
-        ryvs "ybpngvba:" va ybj:
-            cevag(s"  {LRYYBJ}{yvar}  ← erqverpg{ERFRG}")
-        ryvs "frg-pbbxvr:" va ybj:
-            vffhrf = []
-            vs "uggcbayl" abg va ybj:
-                vffhrf.nccraq("AB UggcBayl")
-            vs "frpher" abg va ybj:
-                vffhrf.nccraq("AB Frpher")
-            vs "fnzrfvgr" abg va ybj:
-                vffhrf.nccraq("AB FnzrFvgr")
-            synt_fge = s"  ⚠ {', '.wbva(vffhrf)}" vs vffhrf ryfr "  ✓"
-            synt_pbybe = ERQ vs vffhrf ryfr TERRA
-            cevag(s"  {PLNA}{yvar}{synt_pbybe}{synt_fge}{ERFRG}")
-        ryvs nal(k va ybj sbe k va ["freire:","k-cbjrerq-ol:","ivn:","k-trarengbe:"]):
-            cevag(s"  {LRYYBJ}{yvar}  ← svatrecevag{ERFRG}")
-        ryvs nal(x va ybj sbe x va frphevgl_urnqref):
-            sbe x, qrfp va frphevgl_urnqref.vgrzf():
-                vs x va ybj:
-                    sbhaq_frp.nccraq(qrfp)
-            cevag(s"  {TERRA}{yvar}{ERFRG}")
-        ryfr:
-            cevag(s"  {QVZ}{yvar}{ERFRG}")
+    print_sep()
+    for line in r.stdout.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        low = line.lower()
+        if line.startswith("HTTP/"):
+            parts = line.split()
+            code = parts[1] if len(parts) > 1 else "?"
+            desc = {
+                "200":"OK","301":"Moved Permanently","302":"Found",
+                "304":"Not Modified","400":"Bad Request","401":"Unauthorized",
+                "403":"Forbidden","404":"Not Found","500":"Internal Server Error",
+                "503":"Service Unavailable"
+            }.get(code,"")
+            color = GREEN if code.startswith("2") else (YELLOW if code.startswith("3") else RED)
+            print(f"  {color}{BOLD}{line}  {desc}{RESET}")
+            if code.startswith("3"):
+                redirect_count += 1
+        elif "location:" in low:
+            print(f"  {YELLOW}{line}  ← redirect{RESET}")
+        elif "set-cookie:" in low:
+            issues = []
+            if "httponly" not in low:
+                issues.append("NO HttpOnly")
+            if "secure" not in low:
+                issues.append("NO Secure")
+            if "samesite" not in low:
+                issues.append("NO SameSite")
+            flag_str = f"  ⚠ {', '.join(issues)}" if issues else "  ✓"
+            flag_color = RED if issues else GREEN
+            print(f"  {CYAN}{line}{flag_color}{flag_str}{RESET}")
+        elif any(x in low for x in ["server:","x-powered-by:","via:","x-generator:"]):
+            print(f"  {YELLOW}{line}  ← fingerprint{RESET}")
+        elif any(k in low for k in security_headers):
+            for k, desc in security_headers.items():
+                if k in low:
+                    found_sec.append(desc)
+            print(f"  {GREEN}{line}{RESET}")
+        else:
+            print(f"  {DIM}{line}{RESET}")
 
-    vs erqverpg_pbhag > 3:
-        cevag(s"\a  {LRYYBJ}⚠ {erqverpg_pbhag} erqverpg grewnqv.{ERFRG}")
+    if redirect_count > 0:
+        print(f"\n  {YELLOW}⚠ {redirect_count} redirect terjadi.{RESET}")
 
-    cevag_frc()
-    frpgvba_gvgyr("Frphevgl Urnqref Ercbeg")
-    fpber = 3
-    sbe f va frphevgl_urnqref.inyhrf():
-        vs f va sbhaq_frp:
-            cevag(s"  {TERRA}✓  {f}{ERFRG}")
-            fpber += 4
-        ryfr:
-            cevag(s"  {ERQ}✗  {f}  — ZVFFVAT{ERFRG}")
+    print_sep()
+    section_title("Security Headers Report")
+    score = 0
+    for s in security_headers.values():
+        if s in found_sec:
+            print(f"  {GREEN}✓  {s}{RESET}")
+            score += 1
+        else:
+            print(f"  {RED}✗  {s}  — MISSING{RESET}")
 
-    tenqr = "N" vs fpber >= 9 ryfr ("O" vs fpber >= 7 ryfr ("P" vs fpber >= 5 ryfr "S"))
-    t_pbybe = TERRA vs tenqr == "N" ryfr (LRYYBJ vs tenqr va "OP" ryfr ERQ)
-    cevag(s"\a  {t_pbybe}{OBYQ}Frphevgl Fpber :  {fpber} / {yra(frphevgl_urnqref)}   Tenqr : {tenqr}{ERFRG}")
-    fnir_ybt(s"UGGC URNQRE {g} fpber:{fpber}/0")
+    grade = "A" if score >= 6 else ("B" if score >= 4 else ("C" if score >= 2 else "F"))
+    g_color = GREEN if grade == "A" else (YELLOW if grade in "BC" else RED)
+    print(f"\n  {g_color}{BOLD}Security Score :  {score} / {len(security_headers)}   Grade : {grade}{RESET}")
+    save_log(f"HTTP HEADER {t} score:{score}/7")
 
-@fperra_zbqr("FFY PURPX")
-qrs ffy_purpx(g):
-    g = fgevc_fpurzr(g)
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("bcraffy"):
-        erghea
-    cevag(s"  {PLNA}◉ FFY Purpx  {g}:776{ERFRG}\a")
+@screen_mode("SSL CHECK")
+def ssl_check(t):
+    t = strip_scheme(t)
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("openssl"):
+        return
+    print(f"  {CYAN}◉ SSL Check  {t}:443{RESET}\n")
 
-    e = eha(
-        s"rpub | bcraffy f_pyvrag -pbaarpg {g}:776 -freireanzr {g} 5>/qri/ahyy",
-        gvzrbhg=48
+    r = run(
+        f"echo | openssl s_client -connect {t}:443 -servername {t} 2>/dev/null",
+        timeout=15
     )
-    vs abg (e naq e.fgqbhg.fgevc()):
-        cevag(s"  {ERQ}✗ Xbarxfv FFY tntny.{ERFRG}")
-        erghea
+    if not (r and r.stdout.strip()):
+        print(f"  {RED}✗ Koneksi SSL gagal.{RESET}")
+        return
 
-    cevag_frc()
-    vffhrf = []
-    sbe yvar va e.fgqbhg.fcyvg("\a"):
-        yvar = yvar.fgevc()
-        vs nal(k va yvar sbe k va ["fhowrpg=","vffhre="]):
-            cevag(s"  {PLNA}{yvar}{ERFRG}")
-        ryvs "abgOrsber" va yvar:
-            cevag(s"  {TERRA}◉ Vffhrq  : {yvar}{ERFRG}")
-        ryvs "abgNsgre" va yvar:
-            gel:
-                qngr_fge = yvar.fcyvg("=",4)[4].fgevc()
-                rkc = qngrgvzr.fgecgvzr(qngr_fge, "%o %q %U:%Z:%F %L %M")
-                fvfn = (rkc - qngrgvzr.hgpabj()).qnlf
-                vs fvfn < 3:
-                    vffhrf.nccraq("Fregvsvxng RKCVERQ")
-                    cevag(s"  {ERQ}✗ Rkcverq : {qngr_fge}  ← FHQNU RKCVERQ!{ERFRG}")
-                ryvs fvfn < 47:
-                    vffhrf.nccraq(s"Fregvsvxng unovf {fvfn} unev yntv")
-                    cevag(s"  {ERQ}⚠ Rkcverq : {qngr_fge}  ← {fvfn} unev yntv! FRTREN ERARJ!{ERFRG}")
-                ryvs fvfn < 63:
-                    cevag(s"  {LRYYBJ}⚠ Rkcverq : {qngr_fge}  ← {fvfn} unev yntv!{ERFRG}")
-                ryfr:
-                    cevag(s"  {TERRA}✓ Rkcverq : {qngr_fge}  ({fvfn} unev yntv){ERFRG}")
-            rkprcg:
-                cevag(s"  {TERRA}{yvar}{ERFRG}")
-        ryvs "Irevsl erghea pbqr" va yvar:
-            pbybe = TERRA vs "3 (bx)" va yvar.ybjre() ryfr ERQ
-            znex = "✓" vs "3 (bx)" va yvar.ybjre() ryfr "✗"
-            vs znex == "✗":
-                vffhrf.nccraq("FFY Irevsl TNTNY")
-            cevag(s"  {pbybe}{znex} {yvar}{ERFRG}")
-        ryvs "Cebgbpby" va yvar:
-            vs nal(byq va yvar sbe byq va ["GYFi4 ","GYFi4.3","GYFi4.4","FFYi6","FFYi5"]):
-                vffhrf.nccraq(s"Cebgbxby ynzn: {yvar.fgevc()}")
-                cevag(s"  {ERQ}⚠ {yvar}  ← QRCERPNGRQ!{ERFRG}")
-            ryfr:
-                cevag(s"  {TERRA}✓ {yvar}{ERFRG}")
-        ryvs "Pvcure" va yvar:
-            cevag(s"  {LRYYBJ}◉ {yvar}{ERFRG}")
+    print_sep()
+    issues = []
+    for line in r.stdout.split("\n"):
+        line = line.strip()
+        if any(x in line for x in ["subject=","issuer="]):
+            print(f"  {CYAN}{line}{RESET}")
+        elif "notBefore" in line:
+            print(f"  {GREEN}◉ Issued  : {line}{RESET}")
+        elif "notAfter" in line:
+            try:
+                date_str = line.split("=",1)[1].strip()
+                exp = datetime.strptime(date_str, "%b %d %H:%M:%S %Y %Z")
+                sisa = (exp - datetime.utcnow()).days
+                if sisa < 0:
+                    issues.append("Sertifikat EXPIRED")
+                    print(f"  {RED}✗ Expired : {date_str}  ← SUDAH EXPIRED!{RESET}")
+                elif sisa < 14:
+                    issues.append(f"Sertifikat habis {sisa} hari lagi")
+                    print(f"  {RED}⚠ Expired : {date_str}  ← {sisa} hari lagi! SEGERA RENEW!{RESET}")
+                elif sisa < 30:
+                    print(f"  {YELLOW}⚠ Expired : {date_str}  ← {sisa} hari lagi!{RESET}")
+                else:
+                    print(f"  {GREEN}✓ Expired : {date_str}  ({sisa} hari lagi){RESET}")
+            except:
+                print(f"  {GREEN}{line}{RESET}")
+        elif "Verify return code" in line:
+            color = GREEN if "0 (ok)" in line.lower() else RED
+            mark = "✓" if "0 (ok)" in line.lower() else "✗"
+            if mark == "✗":
+                issues.append("SSL Verify GAGAL")
+            print(f"  {color}{mark} {line}{RESET}")
+        elif "Protocol" in line:
+            if any(old in line for old in ["TLSv1 ","TLSv1.0","TLSv1.1","SSLv3","SSLv2"]):
+                issues.append(f"Protokol lama: {line.strip()}")
+                print(f"  {RED}⚠ {line}  ← DEPRECATED!{RESET}")
+            else:
+                print(f"  {GREEN}✓ {line}{RESET}")
+        elif "Cipher" in line:
+            print(f"  {YELLOW}◉ {line}{RESET}")
 
-    cevag_frc()
-    frpgvba_gvgyr("Cebgbpby Grfg")
-    sbe cebgb, ynory va [("-gyf4_5","GYFi4.5"),("-gyf4_4","GYFi4.4"),("-gyf4","GYFi4.3")]:
-        ce = eha(s"rpub | bcraffy f_pyvrag {cebgb} -pbaarpg {g}:776 -freireanzr {g} 5>&4 | terc -p 'Pvcure'", gvzrbhg=1)
-        vs ce naq ce.fgqbhg.fgevc() == "4":
-            pbybe = TERRA vs "4.5" va ynory ryfr ERQ
-            znex = "✓" vs "4.5" va ynory ryfr "✗ QRCERPNGRQ"
-            vs "QRCERPNGRQ" va znex:
-                vffhrf.nccraq(s"{ynory} znfvu nxgvs")
-            cevag(s"  {pbybe}{znex}  {ynory} fhccbegrq{ERFRG}")
-        ryfr:
-            cevag(s"  {ERQ}○  {ynory} gvqnx fhccbeg / gvzrbhg{ERFRG}")
+    print_sep()
+    section_title("Protocol Test")
+    for proto, label in [("-tls1_2","TLSv1.2"),("-tls1_1","TLSv1.1"),("-tls1","TLSv1.0")]:
+        pr = run(f"echo | openssl s_client {proto} -connect {t}:443 -servername {t} 2>&1 | grep -c 'Cipher'", timeout=8)
+        if pr and pr.stdout.strip() == "1":
+            color = GREEN if "1.2" in label else RED
+            mark = "✓" if "1.2" in label else "✗ DEPRECATED"
+            if "DEPRECATED" in mark:
+                issues.append(f"{label} masih aktif")
+            print(f"  {color}{mark}  {label} supported{RESET}")
+        else:
+            print(f"  {RED}○  {label} tidak support / timeout{RESET}")
 
-    cevag_frc()
-    vs vffhrf:
-        cevag(s"\a  {ERQ}{OBYQ}⚠ VFFHRF QVGRZHXNA :{ERFRG}")
-        sbe vff va vffhrf:
-            cevag(s"    {ERQ}→  {vff}{ERFRG}")
-    ryfr:
-        cevag(s"\a  {TERRA}{OBYQ}✓ FFY BX — Gvqnx nqn znfnynu qvgrzhxna.{ERFRG}")
+    print_sep()
+    if issues:
+        print(f"\n  {RED}{BOLD}⚠ ISSUES DITEMUKAN :{RESET}")
+        for iss in issues:
+            print(f"    {RED}→  {iss}{RESET}")
+    else:
+        print(f"\n  {GREEN}{BOLD}✓ SSL OK — Tidak ada masalah ditemukan.{RESET}")
 
-    fnir_ybt(s"FFY PURPX {g} vffhrf:{yra(vffhrf)}")
+    save_log(f"SSL CHECK {t} issues:{len(issues)}")
 
-@fperra_zbqr("QVE FPNA")
-qrs qve_oehgrsbepr(g):
-    g = g.fgevc().efgevc("/")
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    vs abg gbby_purpx("phey"):
-        erghea
-    cnguf = [
-        "nqzva","ybtva","qnfuobneq","cnary","nqzvavfgengbe",
-        "jc-nqzva","jc-ybtva.cuc","cuczlnqzva","pcnary",
-        ".rai",".tvg/pbasvt",".ugnpprff","jro.pbasvt",
-        "pbasvt.cuc","pbasvt.wfba","frggvatf.cl",
-        "ebobgf.gkg","fvgrznc.kzy","ernqzr.gkg","PUNATRYBT.zq",
-        "pbzcbfre.wfba","cnpxntr.wfba",
-        "ncv","ncv/i4","ncv/i5","tencudy","fjnttre",
-        "fjnttre-hv","fjnttre.wfba","bcrancv.wfba",
-        "onpxhc","onpxhc.mvc","qo.fdy","qhzc.fdy",
-        "qri","grfg","orgn","fgntvat","qroht",
-        "cucvasb.cuc","vasb.cuc","freire-fgnghf",
-        "hcybnqf","svyrf","zrqvn","vzntrf","nffrgf",
+@screen_mode("DIR SCAN")
+def dir_bruteforce(t):
+    t = t.strip().rstrip("/")
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    if not tool_check("curl"):
+        return
+    paths = [
+        "admin","login","dashboard","panel","administrator",
+        "wp-admin","wp-login.php","phpmyadmin","cpanel",
+        ".env",".git/config",".htaccess","web.config",
+        "config.php","config.json","settings.py",
+        "robots.txt","sitemap.xml","readme.txt","CHANGELOG.md",
+        "composer.json","package.json",
+        "api","api/v1","api/v2","graphql","swagger",
+        "swagger-ui","swagger.json","openapi.json",
+        "backup","backup.zip","db.sql","dump.sql",
+        "dev","test","beta","staging","debug",
+        "phpinfo.php","info.php","server-status",
+        "uploads","files","media","images","assets",
     ]
-    sbhaq = []
-    ybpx = guernqvat.Ybpx()
+    found = []
+    lock = threading.Lock()
 
-    frpgvba_gvgyr("Fpna Pbasvthengvba")
-    cevag(s"  {QVZ}{'Gnetrg':<45}{ERFRG}{JUVGR}{g}{ERFRG}")
-    cevag(s"  {QVZ}{'Cnguf':<45}{ERFRG}{JUVGR}{yra(cnguf)} ragevrf  ·  Guernqrq{ERFRG}")
-    cevag_frc()
+    section_title("Scan Configuration")
+    print(f"  {DIM}{'Target':<12}{RESET}{WHITE}{t}{RESET}")
+    print(f"  {DIM}{'Paths':<12}{RESET}{WHITE}{len(paths)} entries  ·  Threaded{RESET}")
+    print_sep()
 
-    qrs purpx_cngu(c):
-        hey = s"{g}/{c}"
-        e = eha(
-            s"phey -b /qri/ahyy -f -j '%{{uggc_pbqr}}:%{{fvmr_qbjaybnq}}' --znk-gvzr 8 -Y {hey}",
-            gvzrbhg=1
+    def check_path(p):
+        url = f"{t}/{p}"
+        r = run(
+            f"curl -o /dev/null -s -w '%{{http_code}}:%{{size_download}}' --max-time 5 -L {url}",
+            timeout=8
         )
-        vs abg e:
-            erghea
-        cnegf = e.fgqbhg.fgevc().fcyvg(":")
-        pbqr = cnegf[3]
-        fvmr = sbezng_olgrf(cnegf[4]) vs yra(cnegf) > 4 ryfr "?"
-        jvgu ybpx:
-            vs pbqr == "533":
-                cevag(s"  {TERRA}● 533  SBHAQ   {hey}  [{fvmr}]{ERFRG}")
-                sbhaq.nccraq(hey)
-                fnir_ybt(s"QVE SBHAQ {hey}")
-            ryvs pbqr va ("634","635","630","631"):
-                cevag(s"  {LRYYBJ}◉ {pbqr}  ERQVE   {hey}{ERFRG}")
-            ryvs pbqr == "736":
-                cevag(s"  {PLNA}◈ 736  SBEOVQ  {hey}{ERFRG}")
-            ryvs pbqr == "734":
-                cevag(s"  {ZNTRAGN}◈ 734  NHGU    {hey}{ERFRG}")
-            ryfr:
-                cevag(s"  {QVZ}○ {pbqr}  ZVFF    {hey}{ERFRG}")
+        if not r:
+            return
+        parts = r.stdout.strip().split(":")
+        code = parts[0]
+        size = format_bytes(parts[1]) if len(parts) > 1 else "?"
+        with lock:
+            if code == "200":
+                print(f"  {GREEN}● 200  FOUND   {url}  [{size}]{RESET}")
+                found.append(url)
+                save_log(f"DIR FOUND {url}")
+            elif code in ("301","302","307","308"):
+                print(f"  {YELLOW}◉ {code}  REDIR   {url}{RESET}")
+            elif code == "403":
+                print(f"  {CYAN}◈ 403  FORBID  {url}{RESET}")
+            elif code == "401":
+                print(f"  {MAGENTA}◈ 401  AUTH    {url}{RESET}")
+            else:
+                print(f"  {DIM}○ {code}  MISS    {url}{RESET}")
 
-    guernqf = []
-    sbe c va cnguf:
-        gu = guernqvat.Guernq(gnetrg=purpx_cngu, netf=(c,))
-        gu.fgneg()
-        guernqf.nccraq(gu)
-        gvzr.fyrrc(3.37)
-    sbe gu va guernqf:
-        gu.wbva()
+    threads = []
+    for p in paths:
+        th = threading.Thread(target=check_path, args=(p,))
+        th.start()
+        threads.append(th)
+        time.sleep(0.04)
+    for th in threads:
+        th.join()
 
-    cevag_frc()
-    cevag(s"  {PLNA}◉ Fryrfnv :  {JUVGR}{yra(sbhaq)}{PLNA} cngu qvgrzhxna.{ERFRG}")
-    vs sbhaq:
-        frpgvba_gvgyr("Sbhaq Yvfg")
-        sbe s va sbhaq:
-            cevag(s"    {TERRA}→  {s}{ERFRG}")
+    print_sep()
+    print(f"  {CYAN}◉ Selesai :  {WHITE}{len(found)}{CYAN} path ditemukan.{RESET}")
+    if found:
+        section_title("Found List")
+        for f in found:
+            print(f"    {GREEN}→  {f}{RESET}")
 
-@fperra_zbqr("FHOQBZNVA")
-qrs fhoqbznva_fpna(q):
-    q = fgevc_fpurzr(q)
-    vs abg vf_inyvq_gnetrg(q):
-        cevag(s"  {ERQ}✗ Qbznva gvqnx inyvq.{ERFRG}")
-        erghea
-    fhof = [
-        "jjj","znvy","ncv","qri","grfg","orgn","pcnary",
-        "sgc","fzgc","cbc","vznc","jroznvy","z","zbovyr",
-        "ncc","nqzva","cbegny","fubc","oybt","sbehz",
-        "fhccbeg","uryc","pqa","fgngvp","zrqvn","vzt",
-        "vzntrf","nffrgf","hcybnq","ica","erzbgr","tvg",
-        "tvgyno","wraxvaf","pv","fgntvat","hng","cebq",
-        "af4","af5","zk","nhgbqvfpbire","nhgbpbasvt",
-        "qnfuobneq","cnary","znantr","fgnghf","zbavgbe",
-        "tensnan","xvonan","cuczlnqzva",
+@screen_mode("SUBDOMAIN")
+def subdomain_scan(d):
+    d = strip_scheme(d)
+    if not is_valid_target(d):
+        print(f"  {RED}✗ Domain tidak valid.{RESET}")
+        return
+    subs = [
+        "www","mail","api","dev","test","beta","cpanel",
+        "ftp","smtp","pop","imap","webmail","m","mobile",
+        "app","admin","portal","shop","blog","forum",
+        "support","help","cdn","static","media","img",
+        "images","assets","upload","vpn","remote","git",
+        "gitlab","jenkins","ci","staging","uat","prod",
+        "ns1","ns2","mx","autodiscover","autoconfig",
+        "dashboard","panel","manage","status","monitor",
+        "grafana","kibana","phpmyadmin",
     ]
-    sbhaq = []
-    ybpx = guernqvat.Ybpx()
+    found = []
+    lock = threading.Lock()
 
-    frpgvba_gvgyr("Fpna Pbasvthengvba")
-    cevag(s"  {QVZ}{'Gnetrg':<45}{ERFRG}{JUVGR}{q}{ERFRG}")
-    cevag(s"  {QVZ}{'Jbeqf':<45}{ERFRG}{JUVGR}{yra(fhof)} fhoqbznva{ERFRG}")
-    cevag_frc()
+    section_title("Scan Configuration")
+    print(f"  {DIM}{'Target':<12}{RESET}{WHITE}{d}{RESET}")
+    print(f"  {DIM}{'Words':<12}{RESET}{WHITE}{len(subs)} subdomain{RESET}")
+    print_sep()
 
-    qrs purpx(f):
-        ubfg = s"{f}.{q}"
-        vc = trg_vc(ubfg)
-        jvgu ybpx:
-            vs vc:
-                cevag(s"  {TERRA}● SBHAQ  {ubfg:<61}→  {vc}{ERFRG}")
-                sbhaq.nccraq((ubfg, vc))
-                fnir_ybt(s"FHOQBZNVA {ubfg}->{vc}")
+    def check(s):
+        host = f"{s}.{d}"
+        ip = get_ip(host)
+        with lock:
+            if ip:
+                print(f"  {GREEN}● FOUND  {host:<38}→  {ip}{RESET}")
+                found.append((host, ip))
+                save_log(f"SUBDOMAIN {host}->{ip}")
 
-    cevag(s"  {PLNA}◉ Fpnaavat...{ERFRG}\a")
-    guernqf = [guernqvat.Guernq(gnetrg=purpx, netf=(f,)) sbe f va fhof]
-    sbe gu va guernqf: gu.fgneg()
-    sbe gu va guernqf: gu.wbva()
+    print(f"  {CYAN}◉ Scanning...{RESET}\n")
+    threads = [threading.Thread(target=check, args=(s,)) for s in subs]
+    for th in threads: th.start()
+    for th in threads: th.join()
 
-    cevag_frc()
-    cevag(s"  {PLNA}◉ Fryrfnv :  {JUVGR}{yra(sbhaq)}{PLNA} fhoqbznva nxgvs.{ERFRG}")
-    vs abg sbhaq:
-        cevag(s"  {ERQ}✗ Gvqnx nqn fhoqbznva lnat qvgrzhxna.{ERFRG}")
+    print_sep()
+    print(f"  {CYAN}◉ Selesai :  {WHITE}{len(found)}{CYAN} subdomain aktif.{RESET}")
+    if not found:
+        print(f"  {RED}✗ Tidak ada subdomain yang ditemukan.{RESET}")
 
-@fperra_zbqr("SHYY FRPHEVGL ERCBEG")
-qrs frphevgl_ercbeg(g):
-    g = fgevc_fpurzr(g.fgevc())
-    vs abg vf_inyvq_gnetrg(g):
-        cevag(s"  {ERQ}✗ Gnetrg gvqnx inyvq.{ERFRG}")
-        erghea
-    hey = abeznyvmr_hey(g)
-    vc = trg_vc(g)
-    nyy_vcf = trg_nyy_vcf(g)
-    fgneg_gvzr = gvzr.gvzr()
+@screen_mode("FULL SECURITY REPORT")
+def security_report(t):
+    t = strip_scheme(t.strip())
+    if not is_valid_target(t):
+        print(f"  {RED}✗ Target tidak valid.{RESET}")
+        return
+    url = normalize_url(t)
+    ip = get_ip(t)
+    all_ips = get_all_ips(t)
+    start_time = time.time()
 
-    frpgvba_gvgyr("Ercbeg Vasbezngvba")
-    cevag(s"  {QVZ}{'Gnetrg':<45}{ERFRG}{JUVGR}{g}{ERFRG}")
-    cevag(s"  {QVZ}{'VC':<45}{ERFRG}{JUVGR}{vc be 'Tntny erfbyir'}{ERFRG}")
-    cevag(s"  {QVZ}{'HEY':<45}{ERFRG}{JUVGR}{hey}{ERFRG}")
-    cevag(s"  {QVZ}{'Gvzr':<45}{ERFRG}{JUVGR}{qngrgvzr.abj().fgesgvzr('%L-%z-%q %U:%Z:%F')}{ERFRG}")
-    cevag_frc()
+    section_title("Report Information")
+    print(f"  {DIM}{'Target':<12}{RESET}{WHITE}{t}{RESET}")
+    print(f"  {DIM}{'IP':<12}{RESET}{WHITE}{ip or 'Gagal resolve'}{RESET}")
+    print(f"  {DIM}{'URL':<12}{RESET}{WHITE}{url}{RESET}")
+    print(f"  {DIM}{'Time':<12}{RESET}{WHITE}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
+    print_sep()
 
-    evfx_fpber = 3
-    svaqvatf = []
+    risk_score = 0
+    findings = []
 
-    # 4. QAF
-    frpgvba_gvgyr("[ 4 / 9 ]  QAF", "◈")
-    qaf_ybbxhc_enj(g)
-    vs yra(nyy_vcf) > 4:
-        cevag(s"  {PLNA}◉ Zhygv-VC / PQA  {', '.wbva(nyy_vcf[:8])}{ERFRG}")
+    # 1. DNS
+    section_title("[ 1 / 6 ]  DNS", "◈")
+    dns_lookup_raw(t)
+    if len(all_ips) > 1:
+        print(f"  {CYAN}◉ Multi-IP / CDN  {', '.join(all_ips[:5])}{RESET}")
 
-    # 5. CVAT + Yngrapl
-    frpgvba_gvgyr("[ 5 / 9 ]  Cvat & Yngrapl", "◈")
-    e = eha(s"cvat -p 6 -J 5 {g}", gvzrbhg=48)
-    vs e naq e.ergheapbqr == 3:
-        sbe yvar va e.fgqbhg.fgevc().fcyvg("\a"):
-            vs "egg" va yvar be "cnpxrg" va yvar:
-                cevag(s"  {TERRA}{yvar.fgevc()}{ERFRG}")
-        yng = pnyp_yngrapl(g)
-        vs yng:
-            d = "Rkpryyrag" vs yng < 53 ryfr ("Tbbq" vs yng < 13 ryfr "Snve")
-            cevag(s"  {TERRA}◉ Fgnghf : NXGVS  ·  Nit : {yng:.4s}zf  [{d}]{ERFRG}")
-    ryfr:
-        cevag(s"  {ERQ}✗ Gvqnx erfcba cvat  (VPZC zhatxva qvoybxve){ERFRG}")
+    # 2. PING + Latency
+    section_title("[ 2 / 6 ]  Ping & Latency", "◈")
+    r = run(f"ping -c 3 -W 2 {t}", timeout=15)
+    if r and r.returncode == 0:
+        for line in r.stdout.strip().split("\n"):
+            if "rtt" in line or "packet" in line:
+                print(f"  {GREEN}{line.strip()}{RESET}")
+        lat = calc_latency(t)
+        if lat:
+            q = "Excellent" if lat < 20 else ("Good" if lat < 80 else "Fair")
+            print(f"  {GREEN}◉ Status : AKTIF  ·  Avg : {lat:.1f}ms  [{q}]{RESET}")
+    else:
+        print(f"  {RED}✗ Tidak respon ping  (ICMP mungkin diblokir){RESET}")
 
-    e_cvat4 = eha(s"cvat -p 4 -J 5 {g}", gvzrbhg=8)
-    vs e_cvat4 naq e_cvat4.fgqbhg:
-        sbe yvar va e_cvat4.fgqbhg.fcyvg("\a"):
-            vs "ggy=" va yvar.ybjre():
-                gel:
-                    ggy = vag(er.frnepu(e"ggy=(\q+)", yvar, er.V).tebhc(4))
-                    bf_t = "Yvahk/Havk" vs ggy <= 97 ryfr ("Jvaqbjf" vs ggy <= 451 ryfr "Argjbex Qrivpr")
-                    cevag(s"  {LRYYBJ}◉ GGY : {ggy}  →  {bf_t}{ERFRG}")
-                rkprcg: cnff
+    r_ping1 = run(f"ping -c 1 -W 2 {t}", timeout=5)
+    if r_ping1 and r_ping1.stdout:
+        for line in r_ping1.stdout.split("\n"):
+            if "ttl=" in line.lower():
+                try:
+                    ttl = int(re.search(r"ttl=(\d+)", line, re.I).group(1))
+                    os_g = "Linux/Unix" if ttl <= 64 else ("Windows" if ttl <= 128 else "Network Device")
+                    print(f"  {YELLOW}◉ TTL : {ttl}  →  {os_g}{RESET}")
+                except: pass
 
-    # 6. CBEG FPNA
-    frpgvba_gvgyr("[ 6 / 9 ]  Cbeg Fpna", "◈")
-    UVTU_EVFX = {54,56,6612,8233,9602,50340,4766}
-    vs vc:
-        bcra_c = []
-        ybpx = guernqvat.Ybpx()
-        qrs cfpna(c, fip):
-            f = fbpxrg.fbpxrg()
-            f.frggvzrbhg(3.9)
-            vs f.pbaarpg_rk((vc, c)) == 3:
-                jvgu ybpx:
-                    onaare = teno_onaare(vc, c)
-                    o_fge = s"  {QVZ}{onaare}{ERFRG}" vs onaare ryfr ""
-                    vf_evfx = c va UVTU_EVFX
-                    pbybe = ERQ vs vf_evfx ryfr TERRA
-                    ynory = "  [UVTU-EVFX]" vs vf_evfx ryfr ""
-                    cevag(s"  {pbybe}● BCRA  {c:8}  ({fip}){ynory}{o_fge}{ERFRG}")
-                    bcra_c.nccraq(c)
-            f.pybfr()
-        guf = [guernqvat.Guernq(gnetrg=cfpna, netf=(c,fip)) sbe c,fip va PBZZBA_CBEGF.vgrzf()]
-        sbe gu va guf: gu.fgneg()
-        sbe gu va guf: gu.wbva()
-        evfxl = [c sbe c va bcra_c vs c va UVTU_EVFX]
-        evfx_fpber += yra(evfxl) * 5
-        vs evfxl:
-            svaqvatf.nccraq(s"Cbeg uvtu-evfx greohxn: {evfxl}")
-        cevag(s"  {PLNA}◉ {yra(bcra_c)} cbeg greohxn qnev {yra(PBZZBA_CBEGF)}{ERFRG}")
+    # 3. PORT SCAN
+    section_title("[ 3 / 6 ]  Port Scan", "◈")
+    HIGH_RISK = {21,23,3389,5900,6379,27017,1433}
+    if ip:
+        open_p = []
+        lock = threading.Lock()
+        def pscan(p, svc):
+            s = socket.socket()
+            s.settimeout(0.6)
+            if s.connect_ex((ip, p)) == 0:
+                with lock:
+                    banner = grab_banner(ip, p)
+                    b_str = f"  {DIM}{banner}{RESET}" if banner else ""
+                    is_risk = p in HIGH_RISK
+                    color = RED if is_risk else GREEN
+                    label = "  [HIGH-RISK]" if is_risk else ""
+                    print(f"  {color}● OPEN  {p:5}  ({svc}){label}{b_str}{RESET}")
+                    open_p.append(p)
+            s.close()
+        ths = [threading.Thread(target=pscan, args=(p,svc)) for p,svc in COMMON_PORTS.items()]
+        for th in ths: th.start()
+        for th in ths: th.join()
+        risky = [p for p in open_p if p in HIGH_RISK]
+        risk_score += len(risky) * 2
+        if risky:
+            findings.append(f"Port high-risk terbuka: {risky}")
+        print(f"  {CYAN}◉ {len(open_p)} port terbuka dari {len(COMMON_PORTS)}{RESET}")
 
-    # 7. UGGC URNQRE
-    frpgvba_gvgyr("[ 7 / 9 ]  UGGC Urnqre", "◈")
-    vs gbby_purpx("phey"):
-        e5 = eha(s"phey -V -f --znk-gvzr 1 {hey}")
-        vs e5 naq e5.fgqbhg:
-            frp_sbhaq = 3
-            frp_gbgny = 0
-            frp_xrlf = ["fgevpg-genafcbeg-frphevgl","pbagrag-frphevgl-cbyvpl","k-senzr-bcgvbaf",
-                        "k-pbagrag-glcr-bcgvbaf","ersreere-cbyvpl","crezvffvbaf-cbyvpl","k-kff-cebgrpgvba"]
-            sbe yvar va e5.fgqbhg.fcyvg("\a")[:53]:
-                y = yvar.fgevc()
-                vs y:
-                    ybj = y.ybjre()
-                    vs nal(x va ybj sbe x va frp_xrlf):
-                        frp_sbhaq += 4
-                    pbybe = LRYYBJ vs nal(k va ybj sbe k va ["freire","cbjrerq"]) ryfr QVZ
-                    cevag(s"  {pbybe}{y}{ERFRG}")
-            zvffvat = frp_gbgny - frp_sbhaq
-            vs zvffvat > 6:
-                evfx_fpber += 5
-                svaqvatf.nccraq(s"{zvffvat} frphevgl urnqre uvynat")
-            cevag(s"  {PLNA}◉ Frphevgl urnqref : {frp_sbhaq} / {frp_gbgny}{ERFRG}")
+    # 4. HTTP HEADER
+    section_title("[ 4 / 6 ]  HTTP Header", "◈")
+    if tool_check("curl"):
+        r2 = run(f"curl -I -s --max-time 8 {url}")
+        if r2 and r2.stdout:
+            sec_found = 0
+            sec_total = 7
+            sec_keys = ["strict-transport-security","content-security-policy","x-frame-options",
+                        "x-content-type-options","referrer-policy","permissions-policy","x-xss-protection"]
+            for line in r2.stdout.split("\n")[:20]:
+                l = line.strip()
+                if l:
+                    low = l.lower()
+                    if any(k in low for k in sec_keys):
+                        sec_found += 1
+                    color = YELLOW if any(x in low for x in ["server","powered"]) else DIM
+                    print(f"  {color}{l}{RESET}")
+            missing = sec_total - sec_found
+            if missing > 3:
+                risk_score += 2
+                findings.append(f"{missing} security header hilang")
+            print(f"  {CYAN}◉ Security headers : {sec_found} / {sec_total}{RESET}")
 
-    # 8. FFY
-    frpgvba_gvgyr("[ 8 / 9 ]  FFY", "◈")
-    vs gbby_purpx("bcraffy"):
-        e6 = eha(s"rpub | bcraffy f_pyvrag -pbaarpg {g}:776 -freireanzr {g} 5>/qri/ahyy")
-        vs e6 naq e6.fgqbhg:
-            sbe yvar va e6.fgqbhg.fcyvg("\a"):
-                yvar = yvar.fgevc()
-                vs "abgNsgre" va yvar:
-                    gel:
-                        qngr_fge = yvar.fcyvg("=",4)[4].fgevc()
-                        rkc = qngrgvzr.fgecgvzr(qngr_fge, "%o %q %U:%Z:%F %L %M")
-                        fvfn = (rkc - qngrgvzr.hgpabj()).qnlf
-                        vs fvfn < 3:
-                            evfx_fpber += 8
-                            svaqvatf.nccraq("FFY RKCVERQ")
-                            cevag(s"  {ERQ}✗ FFY RKCVERQ!  {qngr_fge}{ERFRG}")
-                        ryvs fvfn < 63:
-                            evfx_fpber += 5
-                            svaqvatf.nccraq(s"FFY unzcve rkcverq ({fvfn} unev)")
-                            cevag(s"  {LRYYBJ}⚠ FFY {fvfn} unev yntv rkcver :  {qngr_fge}{ERFRG}")
-                        ryfr:
-                            cevag(s"  {TERRA}✓ FFY BX — {fvfn} unev yntv :  {qngr_fge}{ERFRG}")
-                    rkprcg:
-                        cevag(s"  {QVZ}{yvar}{ERFRG}")
-                ryvs "Irevsl erghea pbqr" va yvar:
-                    pbybe = TERRA vs "3 (bx)" va yvar.ybjre() ryfr ERQ
-                    znex = "✓" vs "3 (bx)" va yvar.ybjre() ryfr "✗"
-                    cevag(s"  {pbybe}{znex} {yvar}{ERFRG}")
-        ryfr:
-            cevag(s"  {ERQ}✗ Gvqnx fhccbeg UGGCF / FFY tntny{ERFRG}")
-            svaqvatf.nccraq("UGGCF gvqnx nxgvs ngnh FFY tntny")
-            evfx_fpber += 6
+    # 5. SSL
+    section_title("[ 5 / 6 ]  SSL", "◈")
+    if tool_check("openssl"):
+        r3 = run(f"echo | openssl s_client -connect {t}:443 -servername {t} 2>/dev/null")
+        if r3 and r3.stdout:
+            for line in r3.stdout.split("\n"):
+                line = line.strip()
+                if "notAfter" in line:
+                    try:
+                        date_str = line.split("=",1)[1].strip()
+                        exp = datetime.strptime(date_str, "%b %d %H:%M:%S %Y %Z")
+                        sisa = (exp - datetime.utcnow()).days
+                        if sisa < 0:
+                            risk_score += 5
+                            findings.append("SSL EXPIRED")
+                            print(f"  {RED}✗ SSL EXPIRED!  {date_str}{RESET}")
+                        elif sisa < 30:
+                            risk_score += 2
+                            findings.append(f"SSL hampir expired ({sisa} hari)")
+                            print(f"  {YELLOW}⚠ SSL {sisa} hari lagi expire :  {date_str}{RESET}")
+                        else:
+                            print(f"  {GREEN}✓ SSL OK — {sisa} hari lagi :  {date_str}{RESET}")
+                    except:
+                        print(f"  {DIM}{line}{RESET}")
+                elif "Verify return code" in line:
+                    color = GREEN if "0 (ok)" in line.lower() else RED
+                    mark = "✓" if "0 (ok)" in line.lower() else "✗"
+                    print(f"  {color}{mark} {line}{RESET}")
+        else:
+            print(f"  {RED}✗ Tidak support HTTPS / SSL gagal{RESET}")
+            findings.append("HTTPS tidak aktif atau SSL gagal")
+            risk_score += 3
 
-    # 9. FHZZNEL
-    ryncfrq = ebhaq(gvzr.gvzr()-fgneg_gvzr, 4)
-    frpgvba_gvgyr("[ 9 / 9 ]  Fhzznel", "◈")
-    cevag_frc()
-    cevag(s"  {QVZ}{'Qhengvba':<47}{ERFRG}{JUVGR}{ryncfrq}f{ERFRG}")
-    cevag(s"  {QVZ}{'Gnetrg':<47}{ERFRG}{JUVGR}{g}{ERFRG}")
-    cevag(s"  {QVZ}{'VC':<47}{ERFRG}{JUVGR}{vc be 'A/N'}{ERFRG}")
+    # 6. SUMMARY
+    elapsed = round(time.time()-start_time, 1)
+    section_title("[ 6 / 6 ]  Summary", "◈")
+    print_sep()
+    print(f"  {DIM}{'Duration':<14}{RESET}{WHITE}{elapsed}s{RESET}")
+    print(f"  {DIM}{'Target':<14}{RESET}{WHITE}{t}{RESET}")
+    print(f"  {DIM}{'IP':<14}{RESET}{WHITE}{ip or 'N/A'}{RESET}")
 
-    vs svaqvatf:
-        cevag(s"\a  {ERQ}{OBYQ}⚠ SVAQVATF :{ERFRG}")
-        sbe s va svaqvatf:
-            cevag(s"    {ERQ}→  {s}{ERFRG}")
+    if findings:
+        print(f"\n  {RED}{BOLD}⚠ FINDINGS :{RESET}")
+        for f in findings:
+            print(f"    {RED}→  {f}{RESET}")
 
-    evfx_ynory = "YBJ" vs evfx_fpber < 6 ryfr ("ZRQVHZ" vs evfx_fpber < 0 ryfr "UVTU")
-    e_pbybe = TERRA vs evfx_fpber < 6 ryfr (LRYYBJ vs evfx_fpber < 0 ryfr ERQ)
-    cevag(s"\a  {e_pbybe}{OBYQ}Evfx Fpber :  {evfx_fpber}  [{evfx_ynory}]{ERFRG}")
+    risk_label = "LOW" if risk_score < 3 else ("MEDIUM" if risk_score < 7 else "HIGH")
+    r_color = GREEN if risk_score < 3 else (YELLOW if risk_score < 7 else RED)
+    print(f"\n  {r_color}{BOLD}Risk Score :  {risk_score}  [{risk_label}]{RESET}")
 
-    cevag_frc()
-    fnir_bhgchg_qrzb(g)
-    cevag(s"\a  {TERRA}{OBYQ}✓ Shyy Frphevgl Ercbeg Fryrfnv!{ERFRG}")
-    fnir_ybt(s"SHYY ERCBEG {g} evfx:{evfx_ynory}({evfx_fpber})")
+    print_sep()
+    save_output_demo(t)
+    print(f"\n  {GREEN}{BOLD}✓ Full Security Report Selesai!{RESET}")
+    save_log(f"FULL REPORT {t} risk:{risk_label}({risk_score})")
 
-# ================= NV =================
-gel:
-    vzcbeg clggfk6
-    ratvar = clggfk6.vavg()
-rkprcg:
-    ratvar = Abar
+# ================= AI =================
+try:
+    import pyttsx3
+    engine = pyttsx3.init()
+except:
+    engine = None
 
-qrs nv_ibvpr_zbqr():
-    vs ratvar:
-        grkg = vachg("  NV Ibvpr : ")
-        ratvar.fnl(grkg)
-        ratvar.ehaNaqJnvg()
-    ryfr:
-        cevag(s"  {ERQ}✗ Ibvpr gvqnx grefrqvn.{ERFRG}")
-        cevag(s"  {LRYYBJ}  Vafgnyy : cvc vafgnyy clggfk6{ERFRG}")
-
-# ============================================================
-#  FHO-ZRAH QNFUOBNEQF
-# ============================================================
-
-qrs fho_urnqre(gvgyr, pbybe=PLNA):
-    pyrne()
-    one = "═" * J
-    cevag()
-    cevag(s"  {pbybe}{OBYQ}╔{one}╗")
-    cevag(s"  ║  🔐 FxlJvatf  ::  {gvgyr:<{J-41}}║")
-    cevag(s"  ╚{one}╝{ERFRG}")
-    cevag()
-
-qrs fho_onpx_cebzcg():
-    cevag()
-    cevag(s"  {QVZ}{'─'*J}{ERFRG}")
-    cevag(s"  {PLNA}  [3]  ←  Xrzonyv xr Znva Zrah{ERFRG}")
-    cevag(s"  {QVZ}{'─'*J}{ERFRG}")
-    cevag()
-
-qrs _zrah_vgrz(ahz, ynory, qrfp, pbybe=PLNA):
-    cevag(s"  {pbybe}  [{ahz:>5}]  {ynory:<53}{QVZ}{qrfp}{ERFRG}")
-
-# ─── ARGJBEX ───────────────────────────────────────────────
-qrs zrah_argjbex():
-    juvyr Gehr:
-        fho_urnqre("ARGJBEX", TERRA)
-        cevag(s"  {TERRA}{OBYQ}◈  ARGJBEX GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("4",  "Dhvpx Fpna",   "Vasb Prcng",      TERRA)
-        _zrah_vgrz("5",  "Zhygv Fpna",   "Onalnx Gnetrg",   TERRA)
-        _zrah_vgrz("6",  "Genpr Ebhgr",  "Ynpnx Ehgr",      TERRA)
-        _zrah_vgrz("7",  "Cvat Gnetrg",  "VPZC Cvat",       TERRA)
-        _zrah_vgrz("8",  "Cbeg Fpna",    "Fpna Cbeg",       TERRA)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "4":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: dhvpx_vasb(g)
-        ryvs c == "5":
-            enj = vachg(s"\a  {LRYYBJ}Gnetrgf (cvfnu fcnfv) : {ERFRG}").fgevc()
-            vs enj: snfg_fpna(enj.fcyvg())
-        ryvs c == "6":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: genpr_ebhgr(g)
-        ryvs c == "7":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: cvat_gnetrg(g)
-        ryvs c == "8":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: cbeg_fpna(g)
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
-
-# ─── JRO VAGRY ─────────────────────────────────────────────
-qrs zrah_jrovagry():
-    juvyr Gehr:
-        fho_urnqre("JRO VAGRY", PLNA)
-        cevag(s"  {PLNA}{OBYQ}◈  JRO VAGRY GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("9",  "Jro Vasb",    "Urnqre + QAF",       PLNA)
-        _zrah_vgrz("0",  "UGGC Urnqre", "Frphevgl Urnqre",    PLNA)
-        _zrah_vgrz("1",  "Qve Fpna",    "Oehgr Cngu",         PLNA)
-        _zrah_vgrz("2",  "Fhoqbznva",   "Rahz Fhoqbznva",     PLNA)
-        _zrah_vgrz("43", "FFY Purpx",   "Prx Fregvsvxng",     PLNA)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "9":
-            g = vachg(s"\a  {LRYYBJ}Jro / Qbznva : {ERFRG}").fgevc()
-            vs g:
-                uggc_urnqre_fpna(abeznyvmr_hey(g))
-                pyrne()
-                xnyv_urnqre("JRO VASB - QAF")
-                qaf_ybbxhc_enj(g)
-                ragre_onpx()
-        ryvs c == "0":
-            g = vachg(s"\a  {LRYYBJ}HEY : {ERFRG}").fgevc()
-            vs g: uggc_urnqre_fpna(abeznyvmr_hey(g))
-        ryvs c == "1":
-            g = vachg(s"\a  {LRYYBJ}HEY : {ERFRG}").fgevc()
-            vs g: qve_oehgrsbepr(abeznyvmr_hey(g))
-        ryvs c == "2":
-            g = vachg(s"\a  {LRYYBJ}Qbznva : {ERFRG}").fgevc()
-            vs g: fhoqbznva_fpna(g)
-        ryvs c == "43":
-            g = vachg(s"\a  {LRYYBJ}Qbznva : {ERFRG}").fgevc()
-            vs g: ffy_purpx(g)
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
-
-# ─── BFVAG ─────────────────────────────────────────────────
-qrs zrah_bfvag():
-    juvyr Gehr:
-        fho_urnqre("BFVAG", LRYYBJ)
-        cevag(s"  {LRYYBJ}{OBYQ}◈  BFVAG GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("44", "JUBVF",      "Vasb Qbznva",   LRYYBJ)
-        _zrah_vgrz("45", "TRB VC",     "Ybxnfv VC",     LRYYBJ)
-        _zrah_vgrz("46", "QAF Ybbxhc", "QAF Erpbeqf",   LRYYBJ)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "44":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: jubvf_ybbxhc(g)
-        ryvs c == "45":
-            g = vachg(s"\a  {LRYYBJ}VC / Qbznva : {ERFRG}").fgevc()
-            vs g: trb_vc(g)
-        ryvs c == "46":
-            g = vachg(s"\a  {LRYYBJ}Qbznva : {ERFRG}").fgevc()
-            vs g: qaf_ybbxhc_zrah(g)
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
-
-# ─── FLFGRZ ────────────────────────────────────────────────
-qrs zrah_flfgrz():
-    juvyr Gehr:
-        fho_urnqre("FLFGRZ", TERRA)
-        cevag(s"  {TERRA}{OBYQ}◈  FLFGRZ GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("47", "Sverjnyy",    "Prx Sverjnyy",  TERRA)
-        _zrah_vgrz("48", "Flfgrz Vasb", "Vasb BF & ENZ", TERRA)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "47":
-            sverjnyy_purpx()
-        ryvs c == "48":
-            flfgrz_vasb()
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
-
-# ─── NQINAPRQ ──────────────────────────────────────────────
-qrs zrah_nqinaprq():
-    juvyr Gehr:
-        fho_urnqre("NQINAPRQ", ZNTRAGN)
-        cevag(s"  {ZNTRAGN}{OBYQ}◈  NQINAPRQ GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("49", "Aznc Fpna",   "Nqinaprq Fpna",   ZNTRAGN)
-        _zrah_vgrz("40", "Shyy Ercbeg", "Yncbena Yratxnc", ZNTRAGN)
-        _zrah_vgrz("41", "Fnir Bhgchg", "Fvzcna Unfvy",    ZNTRAGN)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "49":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: nqinaprq_fpna(g)
-        ryvs c == "40":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g: frphevgl_ercbeg(g)
-        ryvs c == "41":
-            g = vachg(s"\a  {LRYYBJ}Gnetrg : {ERFRG}").fgevc()
-            vs g:
-                pyrne()
-                xnyv_urnqre("FNIR BHGCHG")
-                fnir_bhgchg_qrzb(g)
-                ragre_onpx()
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
-
-# ─── NV GBBYF ──────────────────────────────────────────────
-qrs zrah_nvgbbyf():
-    juvyr Gehr:
-        fho_urnqre("NV GBBYF", PLNA)
-        cevag(s"  {PLNA}{OBYQ}◈  NV GBBYF{ERFRG}")
-        cevag()
-        _zrah_vgrz("42", "NV Ibvpr",  "Grkg gb Fcrrpu", PLNA)
-        _zrah_vgrz("53", "Snfg Fpna", "Cvat Cnenyry",   PLNA)
-        fho_onpx_cebzcg()
-
-        c = vachg(fxljvatf_pbqrk()).fgevc()
-        vs c == "3":
-            oernx
-        ryvs c == "42":
-            nv_ibvpr_zbqr()
-            ragre_onpx()
-        ryvs c == "53":
-            enj = vachg(s"\a  {LRYYBJ}Gnetrgf (cvfnu fcnfv) : {ERFRG}").fgevc()
-            vs enj: snfg_fpna(enj.fcyvg())
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
+def ai_voice_mode():
+    if engine:
+        text = input("  AI Voice : ")
+        engine.say(text)
+        engine.runAndWait()
+    else:
+        print(f"  {RED}✗ Voice tidak tersedia.{RESET}")
+        print(f"  {YELLOW}  Install : pip install pyttsx3{RESET}")
 
 # ============================================================
-#  ZNVA ZRAH
+#  SUB-MENU DASHBOARDS
 # ============================================================
 
-qrs znva_zrah():
-    juvyr Gehr:
-        pyrne()
-        abj = qngrgvzr.abj()
-        one = "═" * J
+def sub_header(title, color=CYAN):
+    clear()
+    bar = "═" * W
+    print()
+    print(f"  {color}{BOLD}╔{bar}╗")
+    print(f"  ║  🔐 SkyWings  ::  {title:<{W-18}}║")
+    print(f"  ╚{bar}╝{RESET}")
+    print()
 
-        cevag()
-        cevag(s"  {PLNA}{OBYQ}╔{one}╗")
-        cevag(s"  ║{'🔓  FLFGRZ FGNGHF  ::  YVIR':^{J}}║")
-        cevag(s"  ║  {QVZ}Qngr : {abj.fgesgvzr('%L-%z-%q')}   Gvzr : {abj.fgesgvzr('%U:%Z:%F')}{PLNA}{' '*(J-61)}║")
-        cevag(s"  ╚{one}╝{ERFRG}")
-        cevag()
+def sub_back_prompt():
+    print()
+    print(f"  {DIM}{'─'*W}{RESET}")
+    print(f"  {CYAN}  [0]  ←  Kembali ke Main Menu{RESET}")
+    print(f"  {DIM}{'─'*W}{RESET}")
+    print()
 
-        pngrtbevrf = [
-            ("4", "ARGJBEX",   "Fpna Wnevatna",  TERRA),
-            ("5", "JRO VAGRY", "Nanyvfn Jro",    PLNA),
-            ("6", "BFVAG",     "Vagryvwra",      LRYYBJ),
-            ("7", "FLFGRZ",    "Vasb Fvfgrz",    TERRA),
-            ("8", "NQINAPRQ",  "Fpna Ynawhgna",  ZNTRAGN),
-            ("9", "NV GBBYF",  "Svghe NV",       PLNA),
+def _menu_item(num, label, desc, color=CYAN):
+    print(f"  {color}  [{num:>2}]  {label:<20}{DIM}{desc}{RESET}")
+
+# ─── NETWORK ───────────────────────────────────────────────
+def menu_network():
+    while True:
+        sub_header("NETWORK", GREEN)
+        print(f"  {GREEN}{BOLD}◈  NETWORK TOOLS{RESET}")
+        print()
+        _menu_item("1",  "Quick Scan",   "Info Cepat",      GREEN)
+        _menu_item("2",  "Multi Scan",   "Banyak Target",   GREEN)
+        _menu_item("3",  "Trace Route",  "Lacak Rute",      GREEN)
+        _menu_item("4",  "Ping Target",  "ICMP Ping",       GREEN)
+        _menu_item("5",  "Port Scan",    "Scan Port",       GREEN)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "1":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: quick_info(t)
+        elif p == "2":
+            raw = input(f"\n  {YELLOW}Targets (pisah spasi) : {RESET}").strip()
+            if raw: fast_scan(raw.split())
+        elif p == "3":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: trace_route(t)
+        elif p == "4":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: ping_target(t)
+        elif p == "5":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: port_scan(t)
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ─── WEB INTEL ─────────────────────────────────────────────
+def menu_webintel():
+    while True:
+        sub_header("WEB INTEL", CYAN)
+        print(f"  {CYAN}{BOLD}◈  WEB INTEL TOOLS{RESET}")
+        print()
+        _menu_item("6",  "Web Info",    "Header + DNS",       CYAN)
+        _menu_item("7",  "HTTP Header", "Security Header",    CYAN)
+        _menu_item("8",  "Dir Scan",    "Brute Path",         CYAN)
+        _menu_item("9",  "Subdomain",   "Enum Subdomain",     CYAN)
+        _menu_item("10", "SSL Check",   "Cek Sertifikat",     CYAN)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "6":
+            t = input(f"\n  {YELLOW}Web / Domain : {RESET}").strip()
+            if t:
+                http_header_scan(normalize_url(t))
+                clear()
+                kali_header("WEB INFO - DNS")
+                dns_lookup_raw(t)
+                enter_back()
+        elif p == "7":
+            t = input(f"\n  {YELLOW}URL : {RESET}").strip()
+            if t: http_header_scan(normalize_url(t))
+        elif p == "8":
+            t = input(f"\n  {YELLOW}URL : {RESET}").strip()
+            if t: dir_bruteforce(normalize_url(t))
+        elif p == "9":
+            t = input(f"\n  {YELLOW}Domain : {RESET}").strip()
+            if t: subdomain_scan(t)
+        elif p == "10":
+            t = input(f"\n  {YELLOW}Domain : {RESET}").strip()
+            if t: ssl_check(t)
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ─── OSINT ─────────────────────────────────────────────────
+def menu_osint():
+    while True:
+        sub_header("OSINT", YELLOW)
+        print(f"  {YELLOW}{BOLD}◈  OSINT TOOLS{RESET}")
+        print()
+        _menu_item("11", "WHOIS",      "Info Domain",   YELLOW)
+        _menu_item("12", "GEO IP",     "Lokasi IP",     YELLOW)
+        _menu_item("13", "DNS Lookup", "DNS Records",   YELLOW)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "11":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: whois_lookup(t)
+        elif p == "12":
+            t = input(f"\n  {YELLOW}IP / Domain : {RESET}").strip()
+            if t: geo_ip(t)
+        elif p == "13":
+            t = input(f"\n  {YELLOW}Domain : {RESET}").strip()
+            if t: dns_lookup_menu(t)
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ─── SYSTEM ────────────────────────────────────────────────
+def menu_system():
+    while True:
+        sub_header("SYSTEM", GREEN)
+        print(f"  {GREEN}{BOLD}◈  SYSTEM TOOLS{RESET}")
+        print()
+        _menu_item("14", "Firewall",    "Cek Firewall",  GREEN)
+        _menu_item("15", "System Info", "Info OS & RAM", GREEN)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "14":
+            firewall_check()
+        elif p == "15":
+            system_info()
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ─── ADVANCED ──────────────────────────────────────────────
+def menu_advanced():
+    while True:
+        sub_header("ADVANCED", MAGENTA)
+        print(f"  {MAGENTA}{BOLD}◈  ADVANCED TOOLS{RESET}")
+        print()
+        _menu_item("16", "Nmap Scan",   "Advanced Scan",   MAGENTA)
+        _menu_item("17", "Full Report", "Laporan Lengkap", MAGENTA)
+        _menu_item("18", "Save Output", "Simpan Hasil",    MAGENTA)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "16":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: advanced_scan(t)
+        elif p == "17":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t: security_report(t)
+        elif p == "18":
+            t = input(f"\n  {YELLOW}Target : {RESET}").strip()
+            if t:
+                clear()
+                kali_header("SAVE OUTPUT")
+                save_output_demo(t)
+                enter_back()
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ─── AI TOOLS ──────────────────────────────────────────────
+def menu_aitools():
+    while True:
+        sub_header("AI TOOLS", CYAN)
+        print(f"  {CYAN}{BOLD}◈  AI TOOLS{RESET}")
+        print()
+        _menu_item("19", "AI Voice",  "Text to Speech", CYAN)
+        _menu_item("20", "Fast Scan", "Ping Paralel",   CYAN)
+        sub_back_prompt()
+
+        p = input(skywings_codex()).strip()
+        if p == "0":
+            break
+        elif p == "19":
+            ai_voice_mode()
+            enter_back()
+        elif p == "20":
+            raw = input(f"\n  {YELLOW}Targets (pisah spasi) : {RESET}").strip()
+            if raw: fast_scan(raw.split())
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
+
+# ============================================================
+#  MAIN MENU
+# ============================================================
+
+def main_menu():
+    while True:
+        clear()
+        now = datetime.now()
+        bar = "═" * W
+
+        print()
+        print(f"  {CYAN}{BOLD}╔{bar}╗")
+        print(f"  ║{'🔓  SYSTEM STATUS  ::  LIVE':^{W}}║")
+        print(f"  ║  {DIM}Date : {now.strftime('%Y-%m-%d')}   Time : {now.strftime('%H:%M:%S')}{CYAN}{' '*(W-38)}║")
+        print(f"  ╚{bar}╝{RESET}")
+        print()
+
+        categories = [
+            ("1", "NETWORK",   "Scan Jaringan",  GREEN),
+            ("2", "WEB INTEL", "Analisa Web",    CYAN),
+            ("3", "OSINT",     "Intelijen",      YELLOW),
+            ("4", "SYSTEM",    "Info Sistem",    GREEN),
+            ("5", "ADVANCED",  "Scan Lanjutan",  MAGENTA),
+            ("6", "AI TOOLS",  "Fitur AI",       CYAN),
         ]
 
-        sbe ahz, anzr, qrfp, pby va pngrtbevrf:
-            cevag(s"  {pby}  [{ahz}]  {OBYQ}{anzr:<47}{ERFRG}{QVZ}{qrfp}{ERFRG}")
+        for num, name, desc, col in categories:
+            print(f"  {col}  [{num}]  {BOLD}{name:<14}{RESET}{DIM}{desc}{RESET}")
 
-        cevag()
-        cevag(s"  {QVZ}{'─'*J}{ERFRG}")
-        cevag(s"  {ERQ}  [3]  RKVG{ERFRG}")
-        cevag(s"  {QVZ}{'─'*J}{ERFRG}")
+        print()
+        print(f"  {DIM}{'─'*W}{RESET}")
+        print(f"  {RED}  [0]  EXIT{RESET}")
+        print(f"  {DIM}{'─'*W}{RESET}")
 
-        c = vachg(fxljvatf_pbqrk()).fgevc()
+        p = input(skywings_codex()).strip()
 
-        vs c == "4":
-            snapl_ybnqvat("RAGREVAT ARGJBEX")
-            zrah_argjbex()
-        ryvs c == "5":
-            snapl_ybnqvat("RAGREVAT JRO VAGRY")
-            zrah_jrovagry()
-        ryvs c == "6":
-            snapl_ybnqvat("RAGREVAT BFVAG")
-            zrah_bfvag()
-        ryvs c == "7":
-            snapl_ybnqvat("RAGREVAT FLFGRZ")
-            zrah_flfgrz()
-        ryvs c == "8":
-            snapl_ybnqvat("RAGREVAT NQINAPRQ")
-            zrah_nqinaprq()
-        ryvs c == "9":
-            snapl_ybnqvat("RAGREVAT NV GBBYF")
-            zrah_nvgbbyf()
-        ryvs c == "3":
-            cevag(s"\a  {PLNA}◉ FXLJVATF QBJA.  Fgnl fnsr.{ERFRG}\a")
-            oernx
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Cvyvuna gvqnx inyvq.{ERFRG}")
-            gvzr.fyrrc(3.9)
+        if p == "1":
+            fancy_loading("ENTERING NETWORK")
+            menu_network()
+        elif p == "2":
+            fancy_loading("ENTERING WEB INTEL")
+            menu_webintel()
+        elif p == "3":
+            fancy_loading("ENTERING OSINT")
+            menu_osint()
+        elif p == "4":
+            fancy_loading("ENTERING SYSTEM")
+            menu_system()
+        elif p == "5":
+            fancy_loading("ENTERING ADVANCED")
+            menu_advanced()
+        elif p == "6":
+            fancy_loading("ENTERING AI TOOLS")
+            menu_aitools()
+        elif p == "0":
+            print(f"\n  {CYAN}◉ SKYWINGS DOWN.  Stay safe.{RESET}\n")
+            break
+        else:
+            print(f"\n  {RED}✗ Pilihan tidak valid.{RESET}")
+            time.sleep(0.6)
 
-# ================= ZNVA =================
-qrs znva():
-    pyrne()
-    ybtb()
-    ybnqvat("FXLJVATF  i4.3  OBBGVAT")
-    gvzr.fyrrc(3.6)
+# ================= MAIN =================
+def main():
+    clear()
+    logo()
+    loading("SKYWINGS  v1.0  BOOTING")
+    time.sleep(0.3)
 
-    juvyr Gehr:
-        xnyv_urnqre("FXLJVATF OL CHGEN")
+    while True:
+        kali_header("SKYWINGS BY PUTRA")
 
-        cevag(s"  {QVZ}{'─'*J}{ERFRG}")
-        pzqf = [
-            ("uryc",  "Znfhx xr frzhn svghe"),
-            ("vasb",  "Flfgrz vasb"),
-            ("pyrne", "Orefvuxna ynlne"),
-            ("rkvg",  "Xryhne"),
+        print(f"  {DIM}{'─'*W}{RESET}")
+        cmds = [
+            ("help",  "Masuk ke semua fitur"),
+            ("info",  "System info"),
+            ("clear", "Bersihkan layar"),
+            ("exit",  "Keluar"),
         ]
-        sbe pzq, qrfp va pzqf:
-            cevag(s"  {TERRA}  {pzq:<1}{ERFRG}{QVZ}{qrfp}{ERFRG}")
-        cevag(s"  {QVZ}{'─'*J}{ERFRG}")
+        for cmd, desc in cmds:
+            print(f"  {GREEN}  {cmd:<8}{RESET}{DIM}{desc}{RESET}")
+        print(f"  {DIM}{'─'*W}{RESET}")
 
-        pzq = vachg(fxljvatf_pbqrk()).fgevc()
+        cmd = input(skywings_codex()).strip()
 
-        vs pzq == "uryc":
-            snapl_ybnqvat("RAGREVAT SRNGHER ZBQR")
-            znva_zrah()
-        ryvs pzq == "vasb":
-            flfgrz_vasb()
-        ryvs pzq == "pyrne":
-            pyrne()
-        ryvs pzq == "rkvg":
-            cevag(s"\a  {PLNA}◉ FXLJVATF.  Fgnl fnsr.{ERFRG}\a")
-            oernx
-        ryfr:
-            cevag(s"\a  {ERQ}✗ Pbzznaq gvqnx qvxrany. Xrgvx 'uryc'.{ERFRG}")
+        if cmd == "help":
+            fancy_loading("ENTERING FEATURE MODE")
+            main_menu()
+        elif cmd == "info":
+            system_info()
+        elif cmd == "clear":
+            clear()
+        elif cmd == "exit":
+            print(f"\n  {CYAN}◉ SKYWINGS.  Stay safe.{RESET}\n")
+            break
+        else:
+            print(f"\n  {RED}✗ Command tidak dikenal. Ketik 'help'.{RESET}")
 
-vs __anzr__ == "__znva__":
-    znva()
+if __name__ == "__main__":
+    main()
