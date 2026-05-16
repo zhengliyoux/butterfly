@@ -31,13 +31,13 @@ git clone https://github.com/zhengliyoux/butterfly.git
 >     📁 ENTER DIRECTORY
 
 ```bash
-cd skywings
+cd butterfly
 ```
 
 >     🚀 RUN TOOLS
 
 ```bash
-python skywings.py
+python butterfly.py
 ```
 >      🔄 UUPDATETOOLS
 
