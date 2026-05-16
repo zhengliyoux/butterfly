@@ -25,7 +25,7 @@ pkg install git python -y
 >     📂 CLONE REPOSITORY
 
 ```bash
-git clone https://github.com/.git
+git clone https://github.com/zhengliyoux/skywings.git
 ```
 
 >     📁 ENTER DIRECTORY
