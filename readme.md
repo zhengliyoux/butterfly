@@ -39,11 +39,9 @@ pkg install python git -y
 ### 3. Clone repo dari GitHub
 
 ```bash
-git clone https://github.com/zhengliyoux/phoenix-visions
-cd phoenix-visions
+git clone https://github.com/zhengliyoux/butterfly.git
+cd butterfly
 ```
-
-> Ganti `phoenix-visions` sesuai nama repo kamu di GitHub.
 
 ---
 
@@ -64,21 +62,10 @@ pip install requests colorama dnspython beautifulsoup4
 ### 5. Jalankan tool
 
 ```bash
-python main.py
+python phoenixvisions.py
 ```
 
 ---
-
-## 📦 requirements.txt
-
-Buat file `requirements.txt` di repo kamu dengan isi:
-
-```
-requests
-colorama
-dnspython
-beautifulsoup4
-```
 
 ---
 
@@ -86,7 +73,7 @@ beautifulsoup4
 
 ```
 phoenix-visions/
-├── main.py            # File utama
+├── phoenixvisions.py            # File utama
 ├── requirements.txt   # Library yang dibutuhkan
 └── README.md          # Dokumentasi ini
 ```
