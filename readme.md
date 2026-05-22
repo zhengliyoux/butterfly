@@ -1,7 +1,7 @@
 # 🔥 Phoenix Visions — Network Recon Tool
 
 > Tool recon jaringan serbaguna berbasis Python untuk Termux & Linux.  
-> Coded with ❤️ by **Putra**
+> Coded with by **Putra**
 
 ---
 
@@ -62,7 +62,7 @@ pip install requests colorama dnspython beautifulsoup4
 ### 5. Jalankan tool
 
 ```bash
-python phoenixvisions.py
+python phoenixvision.py
 ```
 
 ---
