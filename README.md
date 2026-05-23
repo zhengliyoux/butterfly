@@ -53,7 +53,7 @@ pkg install git python -y
 ### 2 · Clone Repository
 
 ```bash
-git clone https://github.com/zhengliyoux/betterfly.git
+git clone https://github.com/zhengliyoux/butterfly.git
 ```
 
 ### 3 · Masuk ke Direktori
